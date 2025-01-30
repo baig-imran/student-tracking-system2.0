@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.sts.constants.ErrorCodeEnum;
 import com.sts.constants.ValidatorRuleEnum;
-import com.sts.constants.ValidatorRuleStatusEnum;
+import com.sts.constants.ValidatorRulesEnum;
 import com.sts.dto.StudentRequest;
 import com.sts.dto.StudentResponse;
 import com.sts.entity.Department;
@@ -55,8 +55,8 @@ public class StudentServiceImpl implements StudentService {
 	    log.info("Starting to save student with request: {}", studentRequest);
 
 	    // Validate the request
-	    if (validatorRuleService.isRuleActive(ValidatorRuleStatusEnum.STUDENT_REQUEST_VALIDATOR.getRuleName())) {
-	        log.info("Starting {}", ValidatorRuleStatusEnum.STUDENT_REQUEST_VALIDATOR.getRuleName());
+	    if (validatorRuleService.isRuleActive(ValidatorRulesEnum.STUDENT_REQUEST_VALIDATOR.getRuleName())) {
+	        log.info("Starting {}", ValidatorRulesEnum.STUDENT_REQUEST_VALIDATOR.getRuleName());
 	        Validator<StudentRequest> validator = applicationContext.getBean(StudentRequestValidator.class);
 	        validator.validate(studentRequest);
 	    }

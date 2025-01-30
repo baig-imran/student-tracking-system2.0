@@ -10,8 +10,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -39,7 +39,7 @@ public class Semester {
 	private String departmentId;
 	
 	@OneToMany(mappedBy = "semester", cascade = CascadeType.ALL)
-	List<Exams> exams;
+	List<Exam> exams;
 
 
 	@OneToMany(mappedBy = "semester", cascade = CascadeType.ALL)

@@ -50,7 +50,7 @@ public class Student {
 	
 	
 	@OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
-	List<Exams> exams;
+	List<Exam> exams;
 	
 	
 	@ManyToMany(mappedBy = "students")  // Reverse side of the many-to-many relationship

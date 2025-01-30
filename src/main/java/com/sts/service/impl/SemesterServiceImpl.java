@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.sts.constants.ErrorCodeEnum;
-import com.sts.constants.ValidatorRuleStatusEnum;
+import com.sts.constants.ValidatorRulesEnum;
 import com.sts.dto.SemesterRequest;
 import com.sts.dto.SemesterResponse;
 import com.sts.dto.StudentRequest;
@@ -59,8 +59,8 @@ public class SemesterServiceImpl implements SemesterService {
 	    log.info("Starting to save student with request: {}", studentRequest);
 
 	    // Validate the request
-	    if (validatorRuleService.isRuleActive(ValidatorRuleStatusEnum.STUDENT_REQUEST_VALIDATOR.getRuleName())) {
-	        log.info("Starting {}", ValidatorRuleStatusEnum.STUDENT_REQUEST_VALIDATOR.getRuleName());
+	    if (validatorRuleService.isRuleActive(ValidatorRulesEnum.STUDENT_REQUEST_VALIDATOR.getRuleName())) {
+	        log.info("Starting {}", ValidatorRulesEnum.STUDENT_REQUEST_VALIDATOR.getRuleName());
 	        Validator<StudentRequest> validator = applicationContext.getBean(StudentRequestValidator.class);
 	        validator.validate(studentRequest);
 	    }

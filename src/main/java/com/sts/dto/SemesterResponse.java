@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.sts.entity.Attendance;
-import com.sts.entity.Exams;
+import com.sts.entity.Exam;
 import com.sts.entity.Faculty;
 import com.sts.entity.Student;
 import com.sts.entity.SubjectsOfSemester;

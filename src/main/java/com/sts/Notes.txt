@@ -1,1 +1,4 @@
 batch is the relation between student and semesters.
+
+ValidatorRulesEnum is used store the names ValidatorRules. 
+ValidatorRuleStatus is used to get the status of the ValidatorRule. 

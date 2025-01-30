@@ -21,6 +21,7 @@ public class ValidatorRuleStatus {
         // Step 1: Load dummy data (temporary solution)
         validatorCache.put("STUDENT_ID_VALIDATOR", true);
         validatorCache.put("STUDENT_REQUEST_VALIDATOR", true);
+        validatorCache.put("EXAM_REQUEST_VALIDATOR", true);
 
         // Step 2 (Future): Replace this with database call
         // List<ValidatorRule> rules = validatorRuleRepository.findAll();

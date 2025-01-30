@@ -22,8 +22,9 @@ public class Attendance {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long uId;  // unique id for an attendance for a student	
+	
 	private String departmentId;
-    private String subjectId;
+    private String subjectCode;
     private LocalDate attendanceDate; 
     private Integer period; 
     private Boolean isPresent;
