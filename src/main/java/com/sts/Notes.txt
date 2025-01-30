@@ -1,0 +1,1 @@
+batch is the relation between student and semesters.
