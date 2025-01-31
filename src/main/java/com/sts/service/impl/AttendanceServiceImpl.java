@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.sts.constants.ValidatorRulesEnum;
 import com.sts.dto.AttendanceRequest;
 import com.sts.dto.AttendanceResponse;
+import com.sts.dto.AttendanceUpdateRequest;
 import com.sts.entity.Attendance;
 import com.sts.repository.AttendanceRepository;
 import com.sts.repository.DepartmentRepository;
@@ -78,5 +79,39 @@ public class AttendanceServiceImpl implements AttendanceService {
 		
 		return attendanceResponse;
 	}
+
+
+	@Override
+	public String updateAttendance(AttendanceUpdateRequest attendanceUpdateRequest) {
+	    log.info("Starting to update attendance with request: {}", attendanceUpdateRequest);
+	    
+	    
+	    Attendance updatedAttendance = modelMapper.map(attendanceUpdateRequest, Attendance.class);
+	    int response;
+
+	    try {
+	        // Call the repository method to update the attendance status
+	        response = attendanceRepository.updateAttendance(
+	                attendanceUpdateRequest.getIsPresent(),
+	                attendanceUpdateRequest.getStudentId(),
+	                attendanceUpdateRequest.getSubjectCode(),
+	                attendanceUpdateRequest.getAttendanceDate(),
+	                attendanceUpdateRequest.getPeriod()
+	        );
+
+	        // Check if the update was successful
+	        if (response > 0) {
+	            log.info("Attendance updated successfully");
+	            return "Attendance updated successfully";
+	        } else {
+	            log.warn("No records found to update");
+	            return "No records found to update";
+	        }
+	    } catch (Exception e) {
+	        log.error("Error occurred while updating attendance: ", e);
+	        return "Failed to update attendance due to an error";
+	    }
+	}
+
 
 }
