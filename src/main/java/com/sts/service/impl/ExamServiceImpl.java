@@ -2,6 +2,7 @@ package com.sts.service.impl;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.sts.constants.ValidatorRulesEnum;
@@ -9,6 +10,7 @@ import com.sts.dto.ExamRequest;
 import com.sts.dto.ExamResponse;
 import com.sts.dto.ExamUpdateRequest;
 import com.sts.entity.Exam;
+import com.sts.exceptions.CustomException;
 import com.sts.repository.DepartmentRepository;
 import com.sts.repository.ExamRepository;
 import com.sts.repository.FacultyRepository;
@@ -48,80 +50,95 @@ public class ExamServiceImpl implements ExamService {
 
 	@Override
 	public ExamResponse saveExam(ExamRequest examRequest) {
-		log.info("Starting to save exam with request: {}", examRequest);
+	    log.info("Starting to save exam with request: {}", examRequest);
 
-		try {
-			// Validate the request if the validation rule is active
-			if (validatorRuleService.isRuleActive(ValidatorRulesEnum.EXAM_REQUEST_VALIDATOR.getRuleName())) {
-				log.info("Starting validation using rule: {}", ValidatorRulesEnum.EXAM_REQUEST_VALIDATOR.getRuleName());
-				Validator<ExamRequest> validator = applicationContext.getBean(ExamRequestValidator.class);
-				validator.validate(examRequest);
-				log.info("Validation successful for request: {}", examRequest);
-			} else {
-				log.warn("Validation rule '{}' is not active, skipping validation.", ValidatorRulesEnum.EXAM_REQUEST_VALIDATOR.getRuleName());
-			}
+	    try {
+	        // Validate the request if the validation rule is active
+	        if (validatorRuleService.isRuleActive(ValidatorRulesEnum.EXAM_REQUEST_VALIDATOR.getRuleName())) {
+	            log.info("Validation rule '{}' is active, starting validation...", ValidatorRulesEnum.EXAM_REQUEST_VALIDATOR.getRuleName());
+	            Validator<ExamRequest> validator = applicationContext.getBean(ExamRequestValidator.class);
+	            validator.validate(examRequest);  // Validate each exam request
+	            log.info("Validation successful for request: {}", examRequest);
+	        } else {
+	            log.warn("Validation rule '{}' is not active, skipping validation.", ValidatorRulesEnum.EXAM_REQUEST_VALIDATOR.getRuleName());
+	        }
 
-			// Map the exam request to exam entity
-			log.debug("Mapping ExamRequest to Exam entity.");
-			Exam newExam = modelMapper.map(examRequest, Exam.class);
+	        // Map the exam request to exam entity
+	        log.debug("Mapping ExamRequest to Exam entity.");
+	        Exam newExam = modelMapper.map(examRequest, Exam.class);
 
-			// Set semester and student dynamically
-			log.info("Fetching semester with code: {}", examRequest.getSemesterCode());
-			newExam.setSemester(semesterRepository.getSemesterBySemesterCode(examRequest.getSemesterCode()));
+	        // Dynamically set semester and student based on the request
+	        log.info("Fetching semester with code: {}", examRequest.getSemesterCode());
+	        newExam.setSemester(semesterRepository.getSemesterBySemesterCode(examRequest.getSemesterCode()));
 
-			log.info("Fetching student with ID: {}", examRequest.getStudentId());
-			newExam.setStudent(studentRepository.getStudentByStudentId(examRequest.getStudentId()));
+	        log.info("Fetching student with ID: {}", examRequest.getStudentId());
+	        newExam.setStudent(studentRepository.getStudentByStudentId(examRequest.getStudentId()));
 
-			// Save the exam
-			log.info("Saving the exam entity: {}", newExam);
-			Exam savedExam = examRepository.save(newExam);
-			log.info("Exam saved successfully with ID: {}", savedExam.getExamCode());
+	        // Save the exam entity to the repository
+	        log.info("Saving the exam entity: {}", newExam);
+	        Exam savedExam = examRepository.save(newExam);
+	        log.info("Exam saved successfully with ID: {}", savedExam.getExamCode());
 
-			// Map saved exam to response DTO
-			ExamResponse examResponse = modelMapper.map(savedExam, ExamResponse.class);
-			examResponse.setSemesterCode(savedExam.getSemester().getSemesterCode());
-			examResponse.setStudentId(savedExam.getStudent().getStudentId());
+	        // Map the saved exam to the response DTO
+	        ExamResponse examResponse = modelMapper.map(savedExam, ExamResponse.class);
+	        examResponse.setSemesterCode(savedExam.getSemester().getSemesterCode());
+	        examResponse.setStudentId(savedExam.getStudent().getStudentId());
 
-			log.info("Returning saved exam response with ID: {}", examResponse.getExamCode());
-			return examResponse;
+	        log.info("Returning saved exam response with ID: {}", examResponse.getExamCode());
+	        return examResponse;  // Return the saved exam response
 
-		} catch (Exception e) {
-			log.error("Error saving exam: {}", e.getMessage());
-			throw new RuntimeException("Failed to save exam");
-		}
+	    } catch (Exception e) {
+	        // Log the exception message and rethrow as a CustomException
+	        log.error("Error saving exam: {}", e.getMessage());
+	        throw new CustomException("Failed to save exam", HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
 	}
+
 
 	@Override
-	public boolean updateExam(ExamUpdateRequest examUpdateRequest) {
+	public String updateExam(ExamUpdateRequest examUpdateRequest) {
+	    log.info("Starting to update exam for student ID: {} and subject: {}", 
+	             examUpdateRequest.getStudentId(), examUpdateRequest.getSubjectCode());
 
-		log.info("Starting to update exam with request: {}", examUpdateRequest);
+	    // Map the exam update request to the Exam entity
+	    Exam updatedExam = modelMapper.map(examUpdateRequest, Exam.class);
 
+	    int response;
 
-		Exam updatedExam = modelMapper.map(examUpdateRequest, Exam.class);
-		int response;
+	    try {
+	        // Call the repository method to update the exam status
+	        response = examRepository.updateExam(
+	                examUpdateRequest.getStudentId(),
+	                examUpdateRequest.getSubjectCode(),
+	                examUpdateRequest.getExamName(),
+	                examUpdateRequest.getMarksObtained()
+	        );
 
-		try {
-			// Call the repository method to update the exam status
-			response = examRepository.updateExam(
-					examUpdateRequest.getStudentId(),
-					examUpdateRequest.getSubjectCode(),
-					examUpdateRequest.getExamName(),
-					examUpdateRequest.getMarksObtained()
-					);
+	        // Check if the update was successful
+	        if (response > 0) {
+	            log.info("Successfully updated exam for student ID: {} and subject: {}", 
+	                     examUpdateRequest.getStudentId(), examUpdateRequest.getSubjectCode());
+	            
+	            return "Successfully updated exam for student ID: " + examUpdateRequest.getStudentId()
+	                    + " and subject: " + examUpdateRequest.getSubjectCode();
+	        } else {
+	            // If no records are updated, throw an exception
+	            String errorMessage = "No records found to update for student ID: " 
+	                                  + examUpdateRequest.getStudentId() 
+	                                  + " and subject: " + examUpdateRequest.getSubjectCode();
+	            log.error(errorMessage);
+	            throw new CustomException(errorMessage, HttpStatus.BAD_REQUEST);  // Throw CustomException with BAD_REQUEST status
+	        }
 
-			// Check if the update was successful
-			if (response > 0) {
-				log.info("Exam updated successfully");
-				return true;
-			} else {
-				log.warn("No records found to update");
-				return false;
-			}
-		} catch (Exception e) {
-			log.error("Error occurred while updating exam: ", e.getMessage());
-			throw new RuntimeException(e.getMessage());
-		}
+	    } catch (Exception e) {
+	        log.error("Unexpected error occurred while updating exam for student ID: {} and subject: {}: {}", 
+	                  examUpdateRequest.getStudentId(), examUpdateRequest.getSubjectCode(), e.getMessage());
+	        throw new CustomException("Unexpected error occurred while updating exam", HttpStatus.INTERNAL_SERVER_ERROR); // Throw CustomException with INTERNAL_SERVER_ERROR status
+	    }
 	}
+
+
+
 
 
 

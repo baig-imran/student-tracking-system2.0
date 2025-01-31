@@ -9,6 +9,6 @@ public interface ExamService {
 	
 	 ExamResponse saveExam(ExamRequest examRequest);
 	 
-	 boolean updateExam(ExamUpdateRequest examUpdateRequest);
+	 String updateExam(ExamUpdateRequest examUpdateRequest);
 
 }

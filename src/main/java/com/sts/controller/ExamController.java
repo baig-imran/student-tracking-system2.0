@@ -37,9 +37,7 @@ public class ExamController {
 	public ResponseEntity<String> updateExam(@RequestBody ExamUpdateRequest examUpdateRequest){
 		
 		
-		return examService.updateExam(examUpdateRequest) ?
-				new ResponseEntity<>("Exam record updated",HttpStatus.OK) :
-				new ResponseEntity<>("Failed to save exam record", HttpStatus.NOT_FOUND);
+		return new ResponseEntity<>(examService.updateExam(examUpdateRequest), HttpStatus.NOT_FOUND);
 					
 				
 	}

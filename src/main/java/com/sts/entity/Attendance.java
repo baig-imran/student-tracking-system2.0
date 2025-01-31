@@ -34,7 +34,7 @@ public class Attendance {
 	private Student student;
     
     @ManyToOne
-	@JoinColumn(name="semseter_code", nullable = false)
+	@JoinColumn(name="semester_code", nullable = false)
 	private Semester semester;
     
 
