@@ -1,53 +1,35 @@
 package com.sts.controller;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sts.dto.UserRequest;
+import com.sts.dto.UserResponse;
 import com.sts.service.interfaces.UserService;
 
 @RestController
-//@RequestMapping(Endpoints.V1_USER)
 public class UserController {
-	
-	private final UserService userService;
-	private final AuthenticationManager authenticationManager;
-	
 
-	public UserController(UserService userService, AuthenticationManager authenticationManager) {
-		this.userService = userService;
-		this.authenticationManager = authenticationManager;
-	}
-	
-	@PostMapping("/signup")
-	public ResponseEntity<?> signup(@RequestBody UserRequest userRequest){
+    private final UserService userService;
 
-		return new ResponseEntity<>(userService.saveUser(userRequest), HttpStatus.CREATED);
-		
-	}
-	
-	@PostMapping("/login")
-	public ResponseEntity<?> login(@RequestBody UserRequest userRequest) {
-	    String token = userService.verify(userRequest);
-	    if (token != null) {
-	        Map<String, Object> response = new HashMap<>();
-	        response.put("token", token);
-	        response.put("userName", userRequest.getUserName());
-	        
-	        response.put("role", userService.getRole(userRequest.getUserName()));
-	        
-	        return ResponseEntity.ok(response);
-	    } else {
-	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
-	    }
-	}
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<UserResponse> signup(@RequestBody UserRequest userRequest) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.saveUser(userRequest));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, Object>> login(@RequestBody UserRequest userRequest) {
+        return ResponseEntity.ok(userService.verify(userRequest));
+    }
 	
 //	@PostConstruct
 //	public void init() {

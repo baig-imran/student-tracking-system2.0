@@ -16,6 +16,7 @@ import com.sts.dto.ExamResponse;
 import com.sts.dto.ExamUpdateRequest;
 import com.sts.service.interfaces.ExamService;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -32,10 +33,8 @@ public class ExamController {
 	
 	@PostMapping("/search")
 	public ResponseEntity<List<ExamResponse>> getExams(@RequestBody ExamRequest filterRequest) {
-	    log.info("Searching for exams with filter criteria: {}", filterRequest);
-	    List<ExamResponse> examList = examService.getExams(filterRequest);
-	    log.info("Found {} exams based on the provided filter", examList.size());
-	    return new ResponseEntity<>(examList, HttpStatus.OK);
+	    
+	    return new ResponseEntity<>(examService.getExams(filterRequest), HttpStatus.OK);
 	}
 
 	@PostMapping
@@ -55,7 +54,7 @@ public class ExamController {
 	}
 
 	@PutMapping
-	public ResponseEntity<String> updateExam(@RequestBody ExamUpdateRequest examUpdateRequest) {
+	public ResponseEntity<String> updateExam(@Valid @RequestBody ExamUpdateRequest examUpdateRequest) {
 	    log.info("Received request to update exam: {}", examUpdateRequest);
 	    String updateStatus = examService.updateExam(examUpdateRequest);
 	    log.info("Exam update status: {}", updateStatus);
