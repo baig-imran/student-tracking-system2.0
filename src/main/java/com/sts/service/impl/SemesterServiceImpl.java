@@ -11,13 +11,13 @@ import com.sts.constants.ErrorCodeEnum;
 import com.sts.constants.ValidatorRulesEnum;
 import com.sts.dto.SemesterRequest;
 import com.sts.dto.SemesterResponse;
-import com.sts.dto.StudentRequest;
+import com.sts.dto.StudentCreateRequest;
 import com.sts.dto.StudentResponse;
 import com.sts.entity.Department;
 import com.sts.entity.Faculty;
 import com.sts.entity.Semester;
 import com.sts.entity.Student;
-import com.sts.exceptions.DepartmentIdValidationException;
+import com.sts.exceptions.CustomException;
 import com.sts.repository.DepartmentRepository;
 import com.sts.repository.FacultyRepository;
 import com.sts.repository.SemesterRepository;
@@ -54,14 +54,14 @@ public class SemesterServiceImpl implements SemesterService {
 
 
 	
-	public StudentResponse saveStudent(StudentRequest studentRequest){
+	public StudentResponse saveStudent(StudentCreateRequest studentRequest){
 
 	    log.info("Starting to save student with request: {}", studentRequest);
 
 	    // Validate the request
 	    if (validatorRuleService.isRuleActive(ValidatorRulesEnum.STUDENT_REQUEST_VALIDATOR.getRuleName())) {
 	        log.info("Starting {}", ValidatorRulesEnum.STUDENT_REQUEST_VALIDATOR.getRuleName());
-	        Validator<StudentRequest> validator = applicationContext.getBean(StudentRequestValidator.class);
+	        Validator<StudentCreateRequest> validator = applicationContext.getBean(StudentRequestValidator.class);
 	        validator.validate(studentRequest);
 	    }
 
@@ -73,8 +73,7 @@ public class SemesterServiceImpl implements SemesterService {
 	        Department department = departmentRepository.findById(studentRequest.getDepartmentId())
 	                .orElseThrow(() -> {
 	                    log.error("Department not found for ID: {}", studentRequest.getDepartmentId());
-	                    return new DepartmentIdValidationException(
-	                            ErrorCodeEnum.DEPARTMENT_ID_NOT_FOUND.getErrorCode(),
+	                    return new CustomException(
 	                            ErrorCodeEnum.DEPARTMENT_ID_NOT_FOUND.getErrorMessage(),
 	                            HttpStatus.NOT_FOUND
 	                    );
@@ -112,6 +111,8 @@ public class SemesterServiceImpl implements SemesterService {
 	        throw e;
 	    }
 	}
+	
+	
 
 	
 	

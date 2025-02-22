@@ -29,6 +29,7 @@ public class Semester {
 
 	private Integer semesterNumber; //1,2
 	private Integer studyYear;	// 1,2,3,4
+	private Integer semesterSerialNumber; //1,2,...8
 	private Integer academicYear;//2020, 2021 ...
 	private String regulation;
 	private LocalDate startDate;

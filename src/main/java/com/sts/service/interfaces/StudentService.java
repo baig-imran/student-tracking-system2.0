@@ -1,11 +1,20 @@
 package com.sts.service.interfaces;
 
+import java.util.List;
+
+import com.sts.dto.StudentCreateRequest;
+import com.sts.dto.StudentGetRequest;
 import com.sts.dto.StudentResponse;
-import com.sts.dto.StudentRequest;
 
 public interface StudentService{
 	
-	StudentResponse saveStudent(StudentRequest studentRequest);
+	StudentResponse saveStudent(StudentCreateRequest studentCreateRequest);
+
+	String saveMultipleStudents(List<StudentCreateRequest> studentCreateRequests);
+
+	List<StudentResponse> getStudents(StudentGetRequest studentGetRequest);
+	
+	
 	
 	
 

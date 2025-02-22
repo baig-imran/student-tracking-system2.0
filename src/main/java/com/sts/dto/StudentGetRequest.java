@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class StudentRequest {
+public class StudentGetRequest {
 	
 	 	private String studentId;
 	    private String studentName;

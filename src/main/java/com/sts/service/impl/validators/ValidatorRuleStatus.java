@@ -17,11 +17,14 @@ public class ValidatorRuleStatus {
 
     @PostConstruct
     public void loadValidatorRules() {
-    	log.info("validation rules activated");
+    	log.info("--validation rules activated--");
         // Step 1: Load dummy data (temporary solution)
         validatorCache.put("STUDENT_ID_VALIDATOR", true);
         validatorCache.put("STUDENT_REQUEST_VALIDATOR", true);
         validatorCache.put("EXAM_REQUEST_VALIDATOR", true);
+        validatorCache.put("DUPLICATE_STUDENT_ID_VALIDATOR", true);
+        validatorCache.put("DUPLICATE_DEPARTMENT_ID_VALIDATOR", true);
+        validatorCache.put("DUPLICATE_FACULTY_ID_VALIDATOR", true);
 
         // Step 2 (Future): Replace this with database call
         // List<ValidatorRule> rules = validatorRuleRepository.findAll();

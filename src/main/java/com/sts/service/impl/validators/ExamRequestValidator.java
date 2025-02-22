@@ -14,10 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 public class ExamRequestValidator implements Validator<ExamRequest>{
 
 	private final StudentRepository studentRepository;
-	private final DepartmentIdValidator departmentIdValidator;
-	public ExamRequestValidator(StudentRepository studentRepository, DepartmentIdValidator departmentIdValidator) {
+	
+	public ExamRequestValidator(StudentRepository studentRepository) {
+		super();
 		this.studentRepository = studentRepository;
-		this.departmentIdValidator = departmentIdValidator;
 	}
 	@Override
 	public void validate(ExamRequest examRequest) {

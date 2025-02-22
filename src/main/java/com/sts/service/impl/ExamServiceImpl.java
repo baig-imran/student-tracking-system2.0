@@ -1,5 +1,9 @@
 package com.sts.service.impl;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
@@ -19,6 +23,7 @@ import com.sts.repository.StudentRepository;
 import com.sts.service.impl.validators.ExamRequestValidator;
 import com.sts.service.impl.validators.ValidatorRuleStatus;
 import com.sts.service.interfaces.ExamService;
+import com.sts.specification.ExamSpecification;
 import com.sts.validator.Validator;
 
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +51,38 @@ public class ExamServiceImpl implements ExamService {
 		this.validatorRuleService = validatorRuleService;
 		this.applicationContext = applicationContext;
 		this.examRepository = examRepository;
+	}
+	
+	@Override
+	public List<ExamResponse> getExams(ExamRequest filterRequest) {
+	    log.info("Fetching exam records based on filter criteria: {}", filterRequest);
+
+	    try {
+	        // Use Specification to find matching exam records
+	        List<Exam> examList = examRepository.findAll(ExamSpecification.getExamSpec(filterRequest));
+
+	        if (examList.isEmpty()) {
+	            log.info("No exam records found for the given filter criteria.");
+	            return Collections.emptyList();
+	        }
+
+	        // Map entities to response DTOs
+	        List<ExamResponse> responseList = examList.stream()
+	                .map(exam -> {
+	                    ExamResponse response = modelMapper.map(exam, ExamResponse.class);
+	                    response.setStudentId(exam.getStudent().getStudentId());
+	                    response.setSemesterCode(exam.getSemester().getSemesterCode());
+	                    return response;
+	                })
+	                .collect(Collectors.toList());
+
+	        log.info("Successfully fetched {} exam records.", responseList.size());
+	        return responseList;
+
+	    } catch (Exception e) {
+	        log.error("Error occurred while fetching exam records: {}", e.getMessage());
+	        throw new CustomException("Unexpected error occurred while fetching exam records", HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
 	}
 
 	@Override
@@ -88,20 +125,15 @@ public class ExamServiceImpl implements ExamService {
 	        return examResponse;  // Return the saved exam response
 
 	    } catch (Exception e) {
-	        // Log the exception message and rethrow as a CustomException
 	        log.error("Error saving exam: {}", e.getMessage());
 	        throw new CustomException("Failed to save exam", HttpStatus.INTERNAL_SERVER_ERROR);
 	    }
 	}
 
-
 	@Override
 	public String updateExam(ExamUpdateRequest examUpdateRequest) {
 	    log.info("Starting to update exam for student ID: {} and subject: {}", 
 	             examUpdateRequest.getStudentId(), examUpdateRequest.getSubjectCode());
-
-	    // Map the exam update request to the Exam entity
-	    Exam updatedExam = modelMapper.map(examUpdateRequest, Exam.class);
 
 	    int response;
 
@@ -118,7 +150,6 @@ public class ExamServiceImpl implements ExamService {
 	        if (response > 0) {
 	            log.info("Successfully updated exam for student ID: {} and subject: {}", 
 	                     examUpdateRequest.getStudentId(), examUpdateRequest.getSubjectCode());
-	            
 	            return "Successfully updated exam for student ID: " + examUpdateRequest.getStudentId()
 	                    + " and subject: " + examUpdateRequest.getSubjectCode();
 	        } else {
@@ -137,14 +168,103 @@ public class ExamServiceImpl implements ExamService {
 	    }
 	}
 
+	@Override
+	public String saveMultipleExams(List<ExamRequest> examRequests) {
+	    log.info("Starting to save multiple exam records, total records: {}", examRequests.size());
 
+	    try {
+	        // Check if exam request validation rule is active
+	        if (validatorRuleService.isRuleActive(ValidatorRulesEnum.EXAM_REQUEST_VALIDATOR.getRuleName())) {
+	            log.info("Validation rule '{}' is active, starting validation...", ValidatorRulesEnum.EXAM_REQUEST_VALIDATOR.getRuleName());
+	            Validator<ExamRequest> validator = applicationContext.getBean(ExamRequestValidator.class);
 
+	            // Validate each exam request
+	            examRequests.forEach(request -> {
+	                log.debug("Validating exam request for student ID: {}", request.getStudentId());
+	                validator.validate(request);
+	            });
+	            log.info("Validation completed for all exam requests.");
+	        } else {
+	            log.warn("Validation rule '{}' is not active, skipping validation.", ValidatorRulesEnum.EXAM_REQUEST_VALIDATOR.getRuleName());
+	        }
 
+	        // Log the conversion of ExamRequest to Exam entities
+	        log.debug("Converting ExamRequest list to Exam entities...");
+	        List<Exam> examEntities = examRequests.stream()
+	            .map(request -> {
+	                log.debug("Mapping ExamRequest for student ID: {} to Exam entity", request.getStudentId());
+	                Exam exam = modelMapper.map(request, Exam.class);
+	                exam.setStudent(studentRepository.getStudentByStudentId(request.getStudentId()));
+	                exam.setSemester(semesterRepository.getSemesterBySemesterCode(request.getSemesterCode()));
+	                return exam;
+	            })
+	            .collect(Collectors.toList());
 
+	        // Log before saving the exam records
+	        log.info("Saving all exam records in a single batch...");
+	        List<Exam> savedExams = examRepository.saveAll(examEntities);
 
+	        // Log the result of saving exam records
+	        if (savedExams.size() == examRequests.size()) {
+	            log.info("Successfully saved {} exam records", savedExams.size());
+	            return "Successfully saved " + savedExams.size() + " exam records";
+	        } else {
+	            String errorMessage = "Mismatch in records saved: expected " + examRequests.size() + " but got " + savedExams.size();
+	            log.error(errorMessage);
+	            throw new CustomException(errorMessage, HttpStatus.BAD_REQUEST);  // Throw custom exception with BAD_REQUEST status
+	        }
+	    } catch (CustomException e) {
+	        // Log the custom exception and rethrow
+	        log.error("Error occurred while saving exam records: {}", e.getMessage());
+	        throw e;  // Rethrow the custom exception
+	    } catch (Exception e) {
+	        // Log unexpected errors and throw a custom exception with INTERNAL_SERVER_ERROR status
+	        log.error("Unexpected error occurred while saving exam records: {}", e.getMessage());
+	        throw new CustomException("Unexpected error occurred while saving exam records", HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
+	}
 
+	@Override
+	public String updateMultipleExams(List<ExamUpdateRequest> examUpdateRequests) {
+	    log.info("Starting to update multiple exam records, total records: {}", examUpdateRequests.size());
 
+	    int totalUpdated = 0;
 
+	    try {
+	        for (ExamUpdateRequest request : examUpdateRequests) {
+	            log.debug("Updating exam record for student ID: {} and subject: {}", request.getStudentId(), request.getSubjectCode());
+
+	            // Call repository method to update exam
+	            int updated = examRepository.updateExam(
+	                request.getStudentId(),
+	                request.getSubjectCode(),
+	                request.getExamName(),
+	                request.getMarksObtained()
+	            );
+
+	            if (updated > 0) {
+	                log.info("Successfully updated exam for student ID: {} and subject: {}", request.getStudentId(), request.getSubjectCode());
+	                totalUpdated++;
+	            } else {
+	                log.warn("No records found to update for student ID: {} and subject: {}", request.getStudentId(), request.getSubjectCode());
+	            }
+	        }
+
+	        // Check if all records were updated successfully
+	        if (totalUpdated == examUpdateRequests.size()) {
+	            log.info("Successfully updated {} exam records", totalUpdated);
+	            return "Successfully updated " + totalUpdated + " exam records";
+	        } else {
+	            String errorMessage = "Mismatch in records updated: expected " + examUpdateRequests.size() + " but updated " + totalUpdated;
+	            log.error(errorMessage);
+	            throw new CustomException(errorMessage, HttpStatus.BAD_REQUEST);
+	        }
+
+	    } catch (Exception e) {
+	        log.error("Unexpected error occurred while updating multiple exam records: {}", e.getMessage());
+	        throw new CustomException("Unexpected error occurred while updating multiple exams", HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
+	}
 
 
 

@@ -15,4 +15,10 @@ public interface AttendanceService {
 
 	AttendanceResponse saveAttendance(AttendanceRequest attendanceRequest);
 
+	String updateMultipleAttendance(List<AttendanceUpdateRequest> attendanceUpdateRequests);
+
+	List<AttendanceResponse> getAttendance(AttendanceRequest filterRequest);
+	
+	
+
 }

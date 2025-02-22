@@ -1,8 +1,7 @@
 package com.sts.constants;
 
-import com.sts.service.impl.validators.DepartmentValidator;
-import com.sts.service.impl.validators.StudentValidator;
-import com.sts.service.impl.validators.SubjectValidator;
+import com.sts.service.impl.validators.DuplicateStudentIdValidator;
+import com.sts.service.impl.validators.StudentRequestValidator;
 import com.sts.validator.Validator;
 
 import lombok.extern.slf4j.Slf4j;
@@ -10,9 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public enum ValidatorRuleEnum {
 
-	STUDENT_VALIDATOR("STUDENT_VALIDATOR", StudentValidator.class),
-	DEPARTMENT_VALIDATOR("DEPARTMENT_VALIDATOR", DepartmentValidator.class),
-	SUBJECT_VALIDATOR("SUBJECT_VALIDATOR", SubjectValidator.class);
+//	STUDENT_VALIDATOR("STUDENT_VALIDATOR", StudentValidator.class),
+//	DEPARTMENT_VALIDATOR("DEPARTMENT_VALIDATOR", DepartmentValidator.class),
+//	SUBJECT_VALIDATOR("SUBJECT_VALIDATOR", SubjectValidator.class),
+	DUPLICATE_STUDENT_ID_VALIDATOR("DUPLICATE_STUDENT_ID_VALIDATOR", DuplicateStudentIdValidator.class),
+	STUDENT_REQUEST_VALIDATOR("STUDENT_REQUEST_VALIDATOR", StudentRequestValidator.class);
 
   private final String ruleName;
   private final Class<? extends Validator<?>> validatorClass;
