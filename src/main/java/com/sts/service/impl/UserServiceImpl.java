@@ -48,10 +48,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponse saveUser(UserRequest userRequest) {
-        log.info("Attempting to save new user with username: {}", userRequest.getUserName());
+        log.info("Attempting to save new user with username: {}", userRequest.getUsername());
 
-        if (userRepository.findByUserName(userRequest.getUserName()) != null) {
-            throw new ConflictException(ErrorMessageEnum.DUPLICATE_USER.getMessage(userRequest.getUserName()));
+        if (userRepository.findByUsername(userRequest.getUsername()) != null) {
+            throw new ConflictException(ErrorMessageEnum.DUPLICATE_USER.getMessage(userRequest.getUsername()));
         }
 
         userRequest.setPassword(passwordEncoder.encode(userRequest.getPassword()));
@@ -59,7 +59,7 @@ public class UserServiceImpl implements UserService {
         
         try {
             Users savedUser = userRepository.save(newUser);
-            log.info("User successfully saved with username: {}", savedUser.getUserName());
+            log.info("User successfully saved with username: {}", savedUser.getUsername());
             return modelMapper.map(savedUser, UserResponse.class);
         } catch (Exception e) {
             log.error("Error occurred while saving user: {}", e.getMessage());
@@ -69,35 +69,35 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Map<String, Object> verify(UserRequest userRequest) {
-        log.info("Verifying user authentication for username: {}", userRequest.getUserName());
+        log.info("Verifying user authentication for username: {}", userRequest.getUsername());
 
-        Users user = userRepository.findByUserName(userRequest.getUserName());
+        Users user = userRepository.findByUsername(userRequest.getUsername());
         if (user == null) {
-            log.error("User not found: {}", userRequest.getUserName());
+            log.error("User not found: {}", userRequest.getUsername());
             throw new ResourceNotFoundException(ErrorMessageEnum.INVALID_CREDENTIALS.getMessage());
         }
 
         if (!passwordEncoder.matches(userRequest.getPassword(), user.getPassword())) {
-            log.error("Incorrect password for username: {}", userRequest.getUserName());
+            log.error("Incorrect password for username: {}", userRequest.getUsername());
             throw new UnauthorizedException(ErrorMessageEnum.INVALID_CREDENTIALS.getMessage());
         }
 
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(userRequest.getUserName(), userRequest.getPassword()));
+                new UsernamePasswordAuthenticationToken(userRequest.getUsername(), userRequest.getPassword()));
 
         if (authentication.isAuthenticated()) {
-            log.info("User authentication successful for username: {}", userRequest.getUserName());
-            String token = jwtService.generateToken(userRequest.getUserName());
-            return buildAuthResponse(userRequest.getUserName(), token);
+            log.info("User authentication successful for username: {}", userRequest.getUsername());
+            String token = jwtService.generateToken(userRequest.getUsername());
+            return buildAuthResponse(userRequest.getUsername(), token);
         }
 
-        log.error("Authentication failed for username: {}", userRequest.getUserName());
+        log.error("Authentication failed for username: {}", userRequest.getUsername());
         throw new UnauthorizedException(ErrorMessageEnum.UNAUTHORIZED_ACCESS.getMessage());
     }
 
     @Override
     public String getRole(String username) {
-        Users user = userRepository.findByUserName(username);
+        Users user = userRepository.findByUsername(username);
         if (user == null) {
             throw new ResourceNotFoundException(ErrorMessageEnum.INVALID_CREDENTIALS.getMessage());
         }

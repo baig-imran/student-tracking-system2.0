@@ -49,6 +49,7 @@ public class StudentServiceImpl implements StudentService {
 	@Override
 	public List<StudentResponse> getStudents(StudentGetRequest studentGetRequest) {
 		log.info("Fetching students based on filter criteria: {}", studentGetRequest);
+		
 
 		List<Student> studentList = studentRepository.findAll(StudentSpecification.getStudentSpec(studentGetRequest));
 

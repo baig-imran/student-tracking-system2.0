@@ -34,7 +34,7 @@ public class ExamController {
 	@PostMapping("/search")
 	public ResponseEntity<List<ExamResponse>> getExams(@RequestBody ExamRequest filterRequest) {
 	    
-	    return new ResponseEntity<>(examService.getExams(filterRequest), HttpStatus.OK);
+	    return new ResponseEntity<>(examService.getExams(filterRequest), HttpStatus.FOUND);
 	}
 
 	@PostMapping

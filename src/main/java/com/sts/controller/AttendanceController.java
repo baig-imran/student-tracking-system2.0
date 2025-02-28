@@ -36,7 +36,7 @@ public class AttendanceController {
 	    log.info("Searching for attendance records with filter criteria: {}", filterRequest);
 	    List<AttendanceResponse> attendanceList = attendanceService.getAttendance(filterRequest);
 	    log.info("Found {} attendance records based on provided criteria", attendanceList.size());
-	    return new ResponseEntity<>(attendanceList, HttpStatus.FOUND);
+	    return new ResponseEntity<>(attendanceList, HttpStatus.OK);
 	}
 
 	@PostMapping

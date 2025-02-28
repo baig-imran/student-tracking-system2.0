@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -13,6 +14,7 @@ import org.springframework.web.context.request.WebRequest;
 
 import com.sts.dto.ErrorResponse;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 
 @ControllerAdvice
@@ -31,6 +33,12 @@ public class ValidationExceptionHandler {
         log.error("Validation failed: {}", validationErrors);
 
         return buildErrorResponse("Request contains invalid data", HttpStatus.BAD_REQUEST, request);
+    }//AuthorizationDeniedException
+	
+	@ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(
+    		AuthorizationDeniedException ex, WebRequest request) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.UNAUTHORIZED, request);
     }
 
     @ExceptionHandler(CustomException.class)
@@ -93,7 +101,7 @@ public class ValidationExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.CONFLICT, request);
     }
 
-    @ExceptionHandler(ValidationException.class)
+    @ExceptionHandler(ValidationException.class) 
     public ResponseEntity<ErrorResponse> handleValidationException(
             Exception ex, WebRequest request) {
         return buildErrorResponse("An unexpected error occurred.", HttpStatus.BAD_REQUEST, request);
@@ -104,7 +112,9 @@ public class ValidationExceptionHandler {
             Exception ex, WebRequest request) {
         return buildErrorResponse("An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
-
+    
+  
+    
     private ResponseEntity<ErrorResponse> buildErrorResponse(String message, HttpStatus status, WebRequest request) {
         ErrorResponse errorResponse = new ErrorResponse(
                 status.value(),
