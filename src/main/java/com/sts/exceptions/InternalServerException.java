@@ -1,13 +1,13 @@
 package com.sts.exceptions;
 
-public class ValidationException extends RuntimeException{
+public class InternalServerException extends RuntimeException{
+	
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public ValidationException(String message){
+	public InternalServerException(String message){
 		super(message);
 	}
-
 }

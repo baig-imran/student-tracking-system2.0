@@ -16,7 +16,7 @@ public enum ErrorMessageEnum {
     VALIDATION_FAILED(" '%s' Validation failed"),
     UNEXPECTED_ERROR("An unexpected error occurred."),
     INVALID_CREDENTIALS("Invalid credentials"),
-    EMPTY_SEARCH_PARAMS("Missing search parameters. At least one search parameter is required."),
+    EMPTY_REQUEST_OBJECT("Filter criteria/Request object is empty. At least one filter parameter is required"),
     
     
     
@@ -75,7 +75,7 @@ public enum ErrorMessageEnum {
 
     public String getMessage(Object... args) {
     	if (message.contains("%s") && (args == null || args.length == 0)) {
-            return message.replaceAll(" '%s'", "");  // This logic removes '%s' from the message, because if no argument is not passed, then '%s' will be displayed as it is. 
+            return message.replaceAll(" '%s'", "");  // This logic removes '%s' from the message, because if no argument is passed, then '%s' will be displayed as it is. 
         }
         return (args != null && args.length > 0) ? String.format(message, args) : message;
     }

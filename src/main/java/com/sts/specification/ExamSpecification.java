@@ -18,50 +18,50 @@ import jakarta.persistence.criteria.Root;
 public class ExamSpecification {
     
     public static Specification<Exam> getExamSpec(ExamRequest filterRequest) {
-        return (Root<Exam> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
+        return (Root<Exam> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             // Filter by examCode (if provided)
             if (filterRequest.getExamCode() != null) {
-                predicates.add(cb.equal(root.get("examCode"), filterRequest.getExamCode()));
+                predicates.add(criteriaBuilder.equal(root.get("examCode"), filterRequest.getExamCode()));
             }
 
             // Filter by examType (if provided)
             if (filterRequest.getExamType() != null) {
-                predicates.add(cb.equal(root.get("examType"), filterRequest.getExamType()));
+                predicates.add(criteriaBuilder.equal(root.get("examType"), filterRequest.getExamType()));
             }
 
             // Filter by examName (if provided)
             if (filterRequest.getExamName() != null) {
-                predicates.add(cb.like(root.get("examName"), "%" + filterRequest.getExamName() + "%"));
+                predicates.add(criteriaBuilder.like(root.get("examName"), "%" + filterRequest.getExamName() + "%"));
             }
 
             // Filter by examDate (if provided)
             if (filterRequest.getExamDate() != null) {
-                predicates.add(cb.equal(root.get("examDate"), filterRequest.getExamDate()));
+                predicates.add(criteriaBuilder.equal(root.get("examDate"), filterRequest.getExamDate()));
             }
 
             // Filter by subjectCode (if provided)
             if (filterRequest.getSubjectCode() != null) {
-                predicates.add(cb.equal(root.get("subjectCode"), filterRequest.getSubjectCode()));
+                predicates.add(criteriaBuilder.equal(root.get("subjectCode"), filterRequest.getSubjectCode()));
             }
 
             // Filter by marksObtained (if provided)
             if (filterRequest.getMarksObtained() != null) {
-                predicates.add(cb.equal(root.get("marksObtained"), filterRequest.getMarksObtained()));
+                predicates.add(criteriaBuilder.equal(root.get("marksObtained"), filterRequest.getMarksObtained()));
             }
 
             // Filter by semesterCode (if provided)
             if (filterRequest.getSemesterCode() != null) {
-                predicates.add(cb.equal(root.get("semester").get("semesterCode"), filterRequest.getSemesterCode()));
+                predicates.add(criteriaBuilder.equal(root.get("semester").get("semesterCode"), filterRequest.getSemesterCode()));
             }
 
             // Filter by studentId (if provided)
             if (filterRequest.getStudentId() != null) {
-                predicates.add(cb.equal(root.get("student").get("studentId"), filterRequest.getStudentId()));
+                predicates.add(criteriaBuilder.equal(root.get("student").get("studentId"), filterRequest.getStudentId()));
             }
 
-            return cb.and(predicates.toArray(new Predicate[0]));
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
 }

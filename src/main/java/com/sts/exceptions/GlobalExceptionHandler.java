@@ -14,12 +14,11 @@ import org.springframework.web.context.request.WebRequest;
 
 import com.sts.dto.ErrorResponse;
 
-import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 
 @ControllerAdvice
 @Slf4j
-public class ValidationExceptionHandler {
+public class GlobalExceptionHandler {
 	
 	@ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex, WebRequest request) {
@@ -33,13 +32,27 @@ public class ValidationExceptionHandler {
         log.error("Validation failed: {}", validationErrors);
 
         return buildErrorResponse("Request contains invalid data", HttpStatus.BAD_REQUEST, request);
-    }//AuthorizationDeniedException
+    }//AuthorizationDeniedException 
+	
+	@ExceptionHandler(FilterCriteriaException.class)
+    public ResponseEntity<ErrorResponse> handleFilterCriteriaException(
+    		FilterCriteriaException ex, WebRequest request) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+    }
+	
+	@ExceptionHandler(InternalServerException.class)
+    public ResponseEntity<ErrorResponse> handleInternalServerException(
+    		InternalServerException ex, WebRequest request) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+    }
 	
 	@ExceptionHandler(AuthorizationDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(
     		AuthorizationDeniedException ex, WebRequest request) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.UNAUTHORIZED, request);
     }
+	
+	
 
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<String> handleCustomException(CustomException e) {

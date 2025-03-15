@@ -1,6 +1,5 @@
 package com.sts.service.impl;
 
-import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +17,7 @@ import com.sts.dto.ExamUpdateRequest;
 import com.sts.entity.Exam;
 import com.sts.exceptions.BadRequestException;
 import com.sts.exceptions.DatabaseException;
+import com.sts.exceptions.FilterCriteriaException;
 import com.sts.repository.DepartmentRepository;
 import com.sts.repository.ExamRepository;
 import com.sts.repository.FacultyRepository;
@@ -57,11 +57,10 @@ public class ExamServiceImpl implements ExamService {
 
     @Override
     public List<ExamResponse> getExams(ExamRequest filterRequest) {
-        if (isFilterEmpty(filterRequest)) {
-            log.warn("Filter criteria is empty. At least one filter parameter is required");
-            throw new BadRequestException(ErrorMessageEnum.EMPTY_SEARCH_PARAMS.getMessage());
-        }
         log.info("Fetching exam records based on filter criteria: {}", filterRequest);
+        if (isFilterEmpty(filterRequest)) {
+        	throw new FilterCriteriaException();
+        }
 
         try {
             List<Exam> examList = examRepository.findAll(ExamSpecification.getExamSpec(filterRequest));
@@ -91,9 +90,8 @@ public class ExamServiceImpl implements ExamService {
     @Override
     public ExamResponse saveExam(ExamRequest examRequest) {
     	
-    	if (examRequest==null) {
-            log.warn("Exam Request is empty. At least one parameter is required");
-            throw new BadRequestException(ErrorMessageEnum.EMPTY_SEARCH_PARAMS.getMessage());
+    	if (isFilterEmpty(examRequest)) {
+            throw new FilterCriteriaException();
         }
         log.info("Saving new exam: {}", examRequest);
 

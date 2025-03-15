@@ -39,14 +39,14 @@ public class StudentController {
 	}
 	
 	@PostMapping("/search")
-	public ResponseEntity<List<StudentResponse>> getStudents(@RequestBody StudentGetRequest studentRequest) {
+	public ResponseEntity<List<StudentResponse>> getStudentsByCriteria(@RequestBody StudentGetRequest studentRequest) {
 	    log.info("Searching for students with criteria: {}", studentRequest);
-	    return ResponseEntity.status(HttpStatus.OK).body(studentService.getStudents(studentRequest));
+	    return ResponseEntity.status(HttpStatus.OK).body(studentService.getStudentsByCriteria(studentRequest));
 	}
 	
 	@GetMapping("/bulk")
 //	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public ResponseEntity<List<StudentResponse>> getStudentss() {
+	public ResponseEntity<List<StudentResponse>> getAllStudents() {
 		List<StudentResponse> responseList = new ArrayList<>();
 	   
 		List<Student> students = studentRepository.findAll();
@@ -64,13 +64,13 @@ public class StudentController {
 	@PostMapping
 	public ResponseEntity<?> createStudent(@RequestBody StudentCreateRequest studentRequest) {
 	    log.info("Received request to create a new student: {}", studentRequest);
-	    return ResponseEntity.status(HttpStatus.CREATED).body(studentService.saveStudent(studentRequest));
+	    return ResponseEntity.status(HttpStatus.OK).body(studentService.saveStudent(studentRequest));
 	}
 
 	@PostMapping("/bulk")
 	public ResponseEntity<?> createMultipleStudent(@RequestBody List<StudentCreateRequest> studentRequests) {
 	    log.info("Received request to create multiple students: {}", studentRequests);
-	    return ResponseEntity.status(HttpStatus.CREATED).body(studentService.saveMultipleStudents(studentRequests));
+	    return ResponseEntity.status(HttpStatus.OK).body(studentService.saveMultipleStudents(studentRequests));
 	}
 
 }

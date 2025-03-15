@@ -16,10 +16,12 @@ import com.sts.dto.StudentResponse;
 import com.sts.entity.Department;
 import com.sts.entity.Faculty;
 import com.sts.entity.Student;
+import com.sts.exceptions.FilterCriteriaException;
 import com.sts.exceptions.ResourceNotFoundException;
 import com.sts.repository.DepartmentRepository;
 import com.sts.repository.FacultyRepository;
 import com.sts.repository.StudentRepository;
+import com.sts.service.impl.validators.ObjectValidator;
 import com.sts.service.impl.validators.ValidatorRuleStatus;
 import com.sts.service.interfaces.StudentService;
 import com.sts.specification.StudentSpecification;
@@ -47,10 +49,11 @@ public class StudentServiceImpl implements StudentService {
 	}
 
 	@Override
-	public List<StudentResponse> getStudents(StudentGetRequest studentGetRequest) {
+	public List<StudentResponse> getStudentsByCriteria(StudentGetRequest studentGetRequest) {
 		log.info("Fetching students based on filter criteria: {}", studentGetRequest);
 		
-
+		ObjectValidator.isObjectEmpty(studentGetRequest);
+		
 		List<Student> studentList = studentRepository.findAll(StudentSpecification.getStudentSpec(studentGetRequest));
 
 		if (studentList.isEmpty()) {

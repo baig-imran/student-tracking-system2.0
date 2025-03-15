@@ -12,7 +12,7 @@ public interface StudentService{
 
 	String saveMultipleStudents(List<StudentCreateRequest> studentCreateRequests);
 
-	List<StudentResponse> getStudents(StudentGetRequest studentGetRequest);
+	List<StudentResponse> getStudentsByCriteria(StudentGetRequest studentGetRequest);
 	
 	
 	

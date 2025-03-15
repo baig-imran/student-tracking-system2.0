@@ -4,10 +4,9 @@ import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.ApplicationContext;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.sts.constants.ErrorCodeEnum;
+import com.sts.constants.ErrorMessageEnum;
 import com.sts.constants.ValidatorRulesEnum;
 import com.sts.dto.SemesterRequest;
 import com.sts.dto.SemesterResponse;
@@ -17,7 +16,7 @@ import com.sts.entity.Department;
 import com.sts.entity.Faculty;
 import com.sts.entity.Semester;
 import com.sts.entity.Student;
-import com.sts.exceptions.CustomException;
+import com.sts.exceptions.ResourceNotFoundException;
 import com.sts.repository.DepartmentRepository;
 import com.sts.repository.FacultyRepository;
 import com.sts.repository.SemesterRepository;
@@ -33,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SemesterServiceImpl implements SemesterService {
 	
-	private String studentValidationRules = "STUDENT_VALIDATOR,FACULTY_VALIDATOR,DEPARTMENT_VALIDATOR,EXAM_VALIDATOR,ATTENDANCE_VALIDATOR,SUBJECT_VALIDATOR,SUBJECT_SEMESTER_VALIDATOR,SEMESTER_VALIDATOR";
 	private final StudentRepository studentRepository;
 	private final ModelMapper modelMapper;
 	private final FacultyRepository facultyRepository;
@@ -73,10 +71,7 @@ public class SemesterServiceImpl implements SemesterService {
 	        Department department = departmentRepository.findById(studentRequest.getDepartmentId())
 	                .orElseThrow(() -> {
 	                    log.error("Department not found for ID: {}", studentRequest.getDepartmentId());
-	                    return new CustomException(
-	                            ErrorCodeEnum.DEPARTMENT_ID_NOT_FOUND.getErrorMessage(),
-	                            HttpStatus.NOT_FOUND
-	                    );
+	                    return new ResourceNotFoundException(ErrorMessageEnum.DEPARTMENT_ID_NOT_FOUND.getMessage(studentRequest.getDepartmentId())   );
 	                });
 
 	        // Fetch faculty dynamically
