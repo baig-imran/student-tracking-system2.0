@@ -107,7 +107,7 @@ public class UserServiceImpl implements UserService {
     private Map<String, Object> buildAuthResponse(String username, String token) {
         Map<String, Object> response = new HashMap<>();
         response.put("token", token);
-        response.put("userName", username);
+        response.put("username", username);
         response.put("role", getRole(username));
         return response;
     }

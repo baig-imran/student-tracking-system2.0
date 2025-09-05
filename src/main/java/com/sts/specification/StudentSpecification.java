@@ -2,7 +2,7 @@ package com.sts.specification;
 
 import org.springframework.data.jpa.domain.Specification;
 
-import com.sts.dto.StudentGetRequest;
+import com.sts.dto.student.StudentGetRequest;
 import com.sts.entity.Department;
 import com.sts.entity.Faculty;
 import com.sts.entity.Student;

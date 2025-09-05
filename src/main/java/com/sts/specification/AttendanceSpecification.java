@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.domain.Specification;
 
-import com.sts.dto.AttendanceRequest;
+import com.sts.dto.attendance.AttendanceRequest;
 import com.sts.entity.Attendance;
 
 import jakarta.persistence.criteria.Predicate;

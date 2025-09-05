@@ -17,16 +17,14 @@ import lombok.Setter;
 public class Subjects {
 	
 	@Id
-    private String subjectCode;
-	
-	private String subjectShortForm;
+    private String subjectId;
 	private String subjectTitle;
-    private Integer credits;
+	private String subjectShortForm;
+    private Integer credits; // TODO: remove this, because it is provided in SemesterSubject Entity
     
     @ManyToOne
     @JoinColumn(name="department_id", nullable = false)
     private Department department;
-
-
+    
     
 }

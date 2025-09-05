@@ -1,12 +1,20 @@
 package com.sts.service.interfaces;
 
-import com.sts.entity.Faculty;
+import java.util.List;
 
-public interface FacultyService{
-	
-	Faculty getFacultyByFacultyId(String facultyId);
-	
-	
+import com.sts.dto.faculty.FacultyCreateRequest;
+import com.sts.dto.faculty.FacultyGetRequest;
+import com.sts.dto.faculty.FacultyResponse;
+import com.sts.dto.faculty.FacultyUpdateRequest;
 
-
+public interface FacultyService {
+    FacultyResponse getFacultyById(String facultyId);
+    List<FacultyResponse> getAllFaculties();
+    FacultyResponse saveFaculty(FacultyCreateRequest request);
+    FacultyResponse updateFaculty(FacultyUpdateRequest request);
+    String deleteFacultyById(String facultyId);
+	List<FacultyResponse> getFacultyByCriteria(FacultyGetRequest facultyGetRequest);
+	List<FacultyResponse> saveMultipleFaculties(List<FacultyCreateRequest> facultyRequests);
+	
 }
+

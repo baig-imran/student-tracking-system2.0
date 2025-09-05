@@ -50,7 +50,7 @@ public class JWTServiceImpl implements JWTService {
                 .claims(claims) // Add claims
                 .subject(username) // Set subject (username)
                 .issuedAt(new Date(System.currentTimeMillis())) // Set issued at time
-                .expiration(new Date(System.currentTimeMillis() +  60*60*1000)) // Set expiration time (1 hour)
+                .expiration(new Date(System.currentTimeMillis() +  60*60*1000*100)) // Set expiration time (1 hour)
                 .signWith(SECRET_KEY) // Sign the token with the secret key
                 .compact(); // Compact into a string
     }

@@ -10,4 +10,6 @@ public interface SemesterRepository extends JpaRepository<Semester, String> {
 	
 	Semester getSemesterBySemesterCode(String semesterCode);
 	boolean existsBySemesterCode(String semesterCode);
+	
+//	List<String> getStudentIds
 }

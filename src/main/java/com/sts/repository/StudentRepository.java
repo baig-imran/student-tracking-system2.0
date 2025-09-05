@@ -14,5 +14,9 @@ public interface StudentRepository extends JpaRepository<Student, String>, JpaSp
 	Student getStudentByStudentId(String studentId);
 	List<Student> findAllByStudentIdIn(List<String> studentIds);
 	boolean existsByStudentId(String studentId);
+
+	List<Student> findAllByFaculty_FacultyId(String facultyId);
+	
+
 	
 }

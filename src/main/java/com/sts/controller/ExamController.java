@@ -1,76 +1,127 @@
 package com.sts.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sts.constants.Endpoints;
-import com.sts.dto.ExamRequest;
-import com.sts.dto.ExamResponse;
-import com.sts.dto.ExamUpdateRequest;
+import com.sts.constants.SuccessMessageEnum;
+import com.sts.dto.exam.AddExamRequest;
+import com.sts.dto.exam.AddExamResponse;
+import com.sts.dto.exam.ExamsBySpecificationReq;
+import com.sts.dto.exam.GetExamsBySpecificationRes;
+import com.sts.dto.exam.GetExamsBySubjectCodeRes;
+import com.sts.dto.exam.GetExternalExamsBySubjectCodeRes;
+import com.sts.dto.exam.GetInternalExamsBySubjectCodeRes;
+import com.sts.dto.exam.GetSupplyExamsBySubjectCodeRes;
+import com.sts.entity.Exam;
+import com.sts.repository.StudentRepository;
 import com.sts.service.interfaces.ExamService;
+import com.sts.service.interfaces.StudentService;
+import com.sts.utils.ResponseBuilder;
 
-import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+@RequiredArgsConstructor
 
 @Slf4j
 @RestController
 @RequestMapping(Endpoints.V1_EXAMS)
 public class ExamController {
+
+    private final ExamService examService;
+
+    @PostMapping("/search")
+    public ResponseEntity<?> getExamsBySpecification(@RequestBody ExamsBySpecificationReq req) {
+        log.info("Searching exams by specification: {}", req);
+        List<Exam> exams = examService.GetExamsBySpecification(req);
+
+        List<GetExamsBySpecificationRes> responses = exams.stream()
+                .map(examService::mapExamToGetExamBySpecificationRes)
+                .collect(Collectors.toList());
+
+        return ResponseBuilder.ok(responses, SuccessMessageEnum.EXAMS_FETCHED, responses.size());
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createExam(@RequestBody AddExamRequest req) {
+        log.info("Received request to create exam: {}", req);
+        AddExamResponse response = examService.createExam(req);
+        log.info("Successfully created exam: {}", response);
+        return ResponseBuilder.created(response, SuccessMessageEnum.EXAM_CREATED, response.getExamCode());
+    }
+
+    @PostMapping("/bulk")
+    public ResponseEntity<?> bulkCreateExams(@RequestBody List<AddExamRequest> reqs) {
+        log.info("Received request to create {} exams", reqs.size());
+        String result = examService.bulkCreateExams(reqs);
+        log.info("Bulk exam creation resu	lt: {}", result);
+        return ResponseBuilder.created(result, SuccessMessageEnum.EXAMS_BULK_CREATED, reqs.size());
+    }
+
+    @GetMapping("/subjectExams/{subjectCode}")
+    public ResponseEntity<?> getExamsBySubjectCode(@PathVariable("subjectCode") String subjectCode) {
+        log.info("Fetching exams for subjectCode: {}", subjectCode);
+        List<GetExamsBySubjectCodeRes> response = examService.getExamsBySubjectCode(subjectCode);
+        return ResponseBuilder.ok(response, SuccessMessageEnum.EXAMS_FETCHED, response.size());
+    }
+
+    @GetMapping("/getInternalExamsBySubjectCode/{subjectCode}")
+    public ResponseEntity<?> getInternalExamsBySubjectCode(@PathVariable("subjectCode") String subjectCode) {
+        log.info("Fetching internal exams for subjectCode: {}", subjectCode);
+        List<GetInternalExamsBySubjectCodeRes> response = examService.getInternalExamsBySubjectCode(subjectCode);
+        return ResponseBuilder.ok(response, SuccessMessageEnum.EXAMS_FETCHED, response.size());
+    }	
 	
-	private final ExamService examService;
-	
-	public ExamController(ExamService examService) {
-		this.examService = examService;
-	}
-	
-	
-	@PostMapping("/search")
-	public ResponseEntity<List<ExamResponse>> getExams(@RequestBody ExamRequest filterRequest) {
-	    
-	    return new ResponseEntity<>(examService.getExams(filterRequest), HttpStatus.FOUND);
-	}
+    @GetMapping("/getExternalExamsBySubjectCode/{subjectCode}")
+    public ResponseEntity<?> getExternalExamsBySubjectCode(@PathVariable("subjectCode") String subjectCode) {
+        log.info("Fetching external exams for subjectCode: {}", subjectCode);
+        List<GetExternalExamsBySubjectCodeRes> response = examService.getExternalExamsBySubjectCode(subjectCode);
+        return ResponseBuilder.ok(response, SuccessMessageEnum.EXAMS_FETCHED, response.size());
+    }
 
-	@PostMapping
-	public ResponseEntity<ExamResponse> createExam(@RequestBody ExamRequest examRequest) {
-	    log.info("Received request to create exam: {}", examRequest);
-	    ExamResponse createdExam = examService.saveExam(examRequest);
-	    log.info("Successfully created exam: {}", createdExam);
-	    return new ResponseEntity<>(createdExam, HttpStatus.CREATED);
-	}
+    @GetMapping("/getSupplyExamsBySubjectCode/{subjectCode}")
+    public ResponseEntity<?> getSupplyExamsBySubjectCode(@PathVariable("subjectCode") String subjectCode) {
+        log.info("Fetching supply exams for subjectCode: {}", subjectCode);
+        List<GetSupplyExamsBySubjectCodeRes> response = examService.getSupplyExamsBySubjectCode(subjectCode);
+        return ResponseBuilder.ok(response, SuccessMessageEnum.EXAMS_FETCHED, response.size());
+    }
 
-	@PostMapping("/bulk")
-	public ResponseEntity<String> createMultipleExam(@RequestBody List<ExamRequest> examRequests) {
-	    log.info("Received request to create {} exams", examRequests.size());
-	    String creationStatus = examService.saveMultipleExams(examRequests);
-	    log.info("Bulk exam creation status: {}", creationStatus);
-	    return new ResponseEntity<>(creationStatus, HttpStatus.CREATED);
-	}
+    @GetMapping("/getExamsBySubjectCodeAndExamTypeAndExamSubType/{subjectCode}/{examType}/{examSubType}")
+    public ResponseEntity<?> getExamsBySubjectCodeAndExamTypeAndExamSubType(
+            @PathVariable("subjectCode") String subjectCode,
+            @PathVariable("examType") String examType,
+            @PathVariable("examSubType") String examSubType) {
+        log.info("Fetching exams for subjectCode={}, examType={}, examSubType={}", subjectCode, examType, examSubType);
+        List<GetExamsBySubjectCodeRes> response =
+                examService.getExamsBySubjectCodeAndExamTypeAndExamSubType(subjectCode, examType, examSubType);
+        return ResponseBuilder.ok(response, SuccessMessageEnum.EXAMS_FETCHED, response.size());
+    }
 
-	@PutMapping
-	public ResponseEntity<String> updateExam(@Valid @RequestBody ExamUpdateRequest examUpdateRequest) {
-	    log.info("Received request to update exam: {}", examUpdateRequest);
-	    String updateStatus = examService.updateExam(examUpdateRequest);
-	    log.info("Exam update status: {}", updateStatus);
-	    return new ResponseEntity<>(updateStatus, HttpStatus.OK);
-	}
+    // Uncomment and refactor these if needed later
+    /*
+    @PutMapping
+    public ResponseEntity<?> updateExam(@RequestBody ExamUpdateRequest req) {
+        log.info("Updating exam: {}", req);
+        String result = examService.updateExam(req);
+        return ResponseBuilder.ok(result, SuccessMessageEnum.EXAM_UPDATED, req.getExamId());
+    }
 
-	@PutMapping("/bulk")
-	public ResponseEntity<String> updateMultipleExams(@RequestBody List<ExamUpdateRequest> examUpdateRequests) {
-	    log.info("Received request to update {} exams", examUpdateRequests.size());
-	    String updateStatus = examService.updateMultipleExams(examUpdateRequests);
-	    log.info("Bulk exam update status: {}", updateStatus);
-	    return new ResponseEntity<>(updateStatus, HttpStatus.OK);
-	}
-
-	
-	
-
-
+    @PutMapping("/bulk")
+    public ResponseEntity<?> updateMultipleExams(@RequestBody List<ExamUpdateRequest> reqs) {
+        log.info("Updating {} exams", reqs.size());
+        String result = examService.updateMultipleExams(reqs);
+        return ResponseBuilder.ok(result, SuccessMessageEnum.EXAMS_BULK_UPDATED, reqs.size());
+    }
+    */
 }

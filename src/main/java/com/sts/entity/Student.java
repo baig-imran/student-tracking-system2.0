@@ -6,7 +6,6 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
@@ -36,6 +35,7 @@ public class Student {
 	private String batch;
 
 
+	
 	@ManyToOne
 	@JoinColumn(name="department_id", nullable = false)
 	private Department department;
@@ -50,11 +50,15 @@ public class Student {
 	
 	
 	@OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
-	List<Exam> exams;
+	List<StudentExam> exams;
 	
 	
-	@ManyToMany(mappedBy = "students")  // Reverse side of the many-to-many relationship
-    private List<Semester> semesters;  // List of students for the semester
+	@OneToMany(mappedBy = "student")
+    private List<SemesterStudent> semesters;
+	
+	@OneToMany(mappedBy = "student")
+    private List<StudentSubject> subjects;
+	
 	
 	
 	

@@ -28,12 +28,21 @@ public class Endpoints {
 
 	// Exams
 	public static final String V1_EXAMS = "/v1/exams";
+	
+	public static final String V1_STUDENT_EXAMS = "/v1/student-exams";
+
+	public static final String V1_SUPPLY_REGISTRATION = "/v1/supply-registration";
+
+	public static final String V1_STUDENT_SUBJECTS = "/v1/student-Subjects";	
+
+	public static final String V1_MENTORING = "/v1/mentoring";	
 
 	public static final String LOGIN = "/login";
 	
 	public static final String SIGNUP = "/signup";	
 	
 	public static final String LOGOUT = "/logout";	
+	
 		
 	
 	private  Endpoints() {

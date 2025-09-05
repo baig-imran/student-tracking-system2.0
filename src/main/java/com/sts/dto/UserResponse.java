@@ -6,7 +6,8 @@ import lombok.Data;
 
 @Data
 public class UserResponse {
-	private String userName;
+	private String username;
+	
     private String password;
     private String role;
 	

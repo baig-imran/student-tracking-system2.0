@@ -2,7 +2,7 @@ package com.sts.service.impl.validators;
 
 import org.springframework.stereotype.Service;
 
-import com.sts.dto.AttendanceRequest;
+import com.sts.dto.attendance.AttendanceRequest;
 import com.sts.validator.Validator;
 
 import lombok.extern.slf4j.Slf4j;

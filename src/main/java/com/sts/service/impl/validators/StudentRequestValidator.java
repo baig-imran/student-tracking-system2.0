@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.sts.constants.ErrorMessageEnum;
 import com.sts.constants.ValidatorRuleEnum;
-import com.sts.dto.StudentCreateRequest;
+import com.sts.dto.student.StudentCreateRequest;
 import com.sts.exceptions.BadRequestException;
 import com.sts.repository.StudentRepository;
 import com.sts.validator.Validator;

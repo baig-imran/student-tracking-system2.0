@@ -2,6 +2,7 @@ package com.sts.repository;
 
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -30,4 +31,13 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long>, J
             @Param("attendanceDate") LocalDate attendanceDate,
             @Param("period") Integer period
     );
+
+	List<Attendance> findAllByStudent_StudentIdAndSemesterSubject_SubjectCode(String studentId, String subjectCode);
+	
+	List<Attendance> findAllBySemesterSubject_SubjectCodeAndStudent_StudentIdIn(String subjectCode, List<String> studentIds);
+
+	List<Attendance> findAllByStudent_StudentId(String studentId);
+	
+	
+	
 }

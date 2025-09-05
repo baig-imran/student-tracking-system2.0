@@ -6,63 +6,65 @@ import java.util.List;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
-import com.sts.dto.ExamRequest;
+import com.sts.dto.exam.ExamsBySpecificationReq;
 import com.sts.entity.Exam;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
 @Component
 public class ExamSpecification {
-    
-    public static Specification<Exam> getExamSpec(ExamRequest filterRequest) {
+
+    public static Specification<Exam> getExamSpecification(ExamsBySpecificationReq req) {
         return (Root<Exam> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // Filter by examCode (if provided)
-            if (filterRequest.getExamCode() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("examCode"), filterRequest.getExamCode()));
+            // Exam Code
+            if (req.getExamCode() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("examCode"), req.getExamCode()));
             }
 
-            // Filter by examType (if provided)
-            if (filterRequest.getExamType() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("examType"), filterRequest.getExamType()));
+            // Exam Type
+            if (req.getExamType() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("examType"), req.getExamType()));
             }
 
-            // Filter by examName (if provided)
-            if (filterRequest.getExamName() != null) {
-                predicates.add(criteriaBuilder.like(root.get("examName"), "%" + filterRequest.getExamName() + "%"));
+            // Exam Sub Type
+            if (req.getExamSubType() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("examSubType"), req.getExamSubType()));
             }
 
-            // Filter by examDate (if provided)
-            if (filterRequest.getExamDate() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("examDate"), filterRequest.getExamDate()));
+            // Exam Name (partial match)
+            if (req.getExamName() != null) {
+                predicates.add(criteriaBuilder.like(root.get("examName"), "%" + req.getExamName() + "%"));
             }
 
-            // Filter by subjectCode (if provided)
-            if (filterRequest.getSubjectCode() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("subjectCode"), filterRequest.getSubjectCode()));
+            // Exam Date
+            if (req.getExamDate() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("examDate"), req.getExamDate()));
             }
 
-            // Filter by marksObtained (if provided)
-            if (filterRequest.getMarksObtained() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("marksObtained"), filterRequest.getMarksObtained()));
+            // Date Range (optional)
+//            if (req.getFromDate() != null && req.getToDate() != null) {
+//                predicates.add(criteriaBuilder.between(root.get("examDate"), req.getFromDate(), req.getToDate()));
+//            }
+
+            // Subject Code (nested inside semesterSubject)
+            if (req.getSubjectCode() != null) {
+                Join<Object, Object> subjectJoin = root.join("semesterSubject");
+                predicates.add(criteriaBuilder.equal(subjectJoin.get("subjectCode"), req.getSubjectCode()));
             }
 
-            // Filter by semesterCode (if provided)
-            if (filterRequest.getSemesterCode() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("semester").get("semesterCode"), filterRequest.getSemesterCode()));
-            }
-
-            // Filter by studentId (if provided)
-            if (filterRequest.getStudentId() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("student").get("studentId"), filterRequest.getStudentId()));
+            // Semester Code (nested inside semester)
+            if (req.getSemesterCode() != null) {
+                Join<Object, Object> semesterJoin = root.join("semester");
+                predicates.add(criteriaBuilder.equal(semesterJoin.get("semesterCode"), req.getSemesterCode()));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
 }
-

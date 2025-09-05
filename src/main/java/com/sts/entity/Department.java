@@ -1,5 +1,6 @@
 package com.sts.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -23,7 +24,18 @@ public class Department {
     private String departmentName;
     
     @OneToMany(mappedBy = "department", cascade = CascadeType.ALL)
-	List<Student> students;
+	List<Student> students  = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL)
+	List<Faculty> faculties  = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL)
+	List<Semester> semesters  = new ArrayList<>();
 
+    
+    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL)
+    List<Subjects> subjects  = new ArrayList<>();
 
 }
+
+

@@ -25,7 +25,7 @@ public class DuplicateStudentIdValidator implements Validator<String> {
         
         if (studentRepository.existsByStudentId(studentId)) {
             log.error("Validation failed: Duplicate Student ID detected - {}", studentId);
-            throw new ConflictException(String.format(ErrorMessageEnum.DUPLICATE_STUDENT_ID.getMessage(), studentId));
+            throw new ConflictException(ErrorMessageEnum.DUPLICATE_STUDENT_ID.getMessage(studentId));
         }
 
         log.info("Validation successful: No duplicate found for Student ID: {}", studentId);

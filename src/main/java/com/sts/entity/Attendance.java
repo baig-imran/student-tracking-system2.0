@@ -23,11 +23,17 @@ public class Attendance {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long uId;  // unique id for an attendance for a student	
 	
-	private String departmentId;
-    private String subjectCode;
     private LocalDate attendanceDate; 
     private Integer period; 
     private Boolean isPresent;
+    
+    @ManyToOne
+    @JoinColumn(name = "subject_code", nullable = false)
+    private SemesterSubject semesterSubject; 
+    
+    @ManyToOne
+    @JoinColumn(name="department_id", nullable = false)
+    private Department department;
     
     @ManyToOne
 	@JoinColumn(name="student_id", nullable = false)
@@ -36,6 +42,5 @@ public class Attendance {
     @ManyToOne
 	@JoinColumn(name="semester_code", nullable = false)
 	private Semester semester;
-    
-
+   
 }

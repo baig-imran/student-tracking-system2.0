@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
-import com.sts.dto.ErrorResponse;
+import com.sts.constants.ErrorResponse;
+import com.sts.utils.ResponseBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,25 +32,25 @@ public class GlobalExceptionHandler {
         // Log validation errors
         log.error("Validation failed: {}", validationErrors);
 
-        return buildErrorResponse("Request contains invalid data", HttpStatus.BAD_REQUEST, request);
+        return ResponseBuilder.buildErrorResponse("Request contains invalid data", HttpStatus.BAD_REQUEST, request);
     }//AuthorizationDeniedException 
 	
 	@ExceptionHandler(FilterCriteriaException.class)
     public ResponseEntity<ErrorResponse> handleFilterCriteriaException(
     		FilterCriteriaException ex, WebRequest request) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+        return ResponseBuilder.buildErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 	
 	@ExceptionHandler(InternalServerException.class)
     public ResponseEntity<ErrorResponse> handleInternalServerException(
     		InternalServerException ex, WebRequest request) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+        return ResponseBuilder.buildErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 	
 	@ExceptionHandler(AuthorizationDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(
     		AuthorizationDeniedException ex, WebRequest request) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.UNAUTHORIZED, request);
+        return ResponseBuilder.buildErrorResponse(ex.getMessage(), HttpStatus.UNAUTHORIZED, request);
     }
 	
 	
@@ -63,78 +64,69 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(
             AccessDeniedException ex, WebRequest request) {
-        return buildErrorResponse("Access is denied.", HttpStatus.FORBIDDEN, request);
+        return ResponseBuilder.buildErrorResponse("Access is denied.", HttpStatus.FORBIDDEN, request);
     }
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> handleBadRequest(
             BadRequestException ex, WebRequest request) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, request);
+        return ResponseBuilder.buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, request);
     }
 
     @ExceptionHandler(DatabaseException.class)
     public ResponseEntity<ErrorResponse> handleDatabaseException(
             DatabaseException ex, WebRequest request) {
-        return buildErrorResponse("Database operation failed.", HttpStatus.INTERNAL_SERVER_ERROR, request);
+        return ResponseBuilder.buildErrorResponse("Database operation failed.", HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateResource(
             DuplicateResourceException ex, WebRequest request) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.CONFLICT, request);
+        return ResponseBuilder.buildErrorResponse(ex.getMessage(), HttpStatus.CONFLICT, request);
     }
 
     @ExceptionHandler(ExternalServiceException.class)
     public ResponseEntity<ErrorResponse> handleExternalService(
             ExternalServiceException ex, WebRequest request) {
-        return buildErrorResponse("External service error: " + ex.getMessage(), HttpStatus.BAD_GATEWAY, request);
+        return ResponseBuilder.buildErrorResponse("External service error: " + ex.getMessage(), HttpStatus.BAD_GATEWAY, request);
     }
 
     @ExceptionHandler(InvalidInputException.class)
     public ResponseEntity<ErrorResponse> handleInvalidInput(
             InvalidInputException ex, WebRequest request) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, request);
+        return ResponseBuilder.buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, request);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(
             ResourceNotFoundException ex, WebRequest request) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request);
+        return ResponseBuilder.buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request);
     }
 
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorized(
             UnauthorizedException ex, WebRequest request) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.UNAUTHORIZED, request);
+        return ResponseBuilder.buildErrorResponse(ex.getMessage(), HttpStatus.UNAUTHORIZED, request);
     }
 
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ErrorResponse> handleConflict(
             ConflictException ex, WebRequest request) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.CONFLICT, request);
+        return ResponseBuilder.buildErrorResponse(ex.getMessage(), HttpStatus.CONFLICT, request);
     }
 
     @ExceptionHandler(ValidationException.class) 
     public ResponseEntity<ErrorResponse> handleValidationException(
             Exception ex, WebRequest request) {
-        return buildErrorResponse("An unexpected error occurred.", HttpStatus.BAD_REQUEST, request);
+        return ResponseBuilder.buildErrorResponse("An unexpected error occurred.", HttpStatus.BAD_REQUEST, request);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(
             Exception ex, WebRequest request) {
-        return buildErrorResponse("An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR, request);
+        return ResponseBuilder.buildErrorResponse("An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
     
   
-    
-    private ResponseEntity<ErrorResponse> buildErrorResponse(String message, HttpStatus status, WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                status.value(),
-                status.getReasonPhrase(),
-                message,
-                request.getDescription(false)
-        );
-        return new ResponseEntity<>(errorResponse, status);
-    }
+
 }

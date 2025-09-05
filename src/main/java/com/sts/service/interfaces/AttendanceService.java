@@ -2,22 +2,42 @@ package com.sts.service.interfaces;
 
 import java.util.List;
 
-import com.sts.dto.AttendanceRequest;
-import com.sts.dto.AttendanceResponse;
-import com.sts.dto.AttendanceUpdateRequest;
+import com.sts.dto.attendance.AddAttendanceRequest;
+import com.sts.dto.attendance.AttendanceRequest;
+import com.sts.dto.attendance.AttendanceResponse;
+import com.sts.dto.attendance.AttendanceUpdateRequest;
+import com.sts.dto.attendance.GetAttendanceByStudentIdAndSubjectCodeReq;
+import com.sts.dto.attendance.GetStudentAllSemesterAttendanceRes;
+import com.sts.dto.attendance.GetStudentSemesterAttendanceRes;
 
 public interface AttendanceService {
 	
 
 	public String updateAttendance(AttendanceUpdateRequest attendanceUpdateRequest);
 	
-	public String saveMultipleAttendance(List<AttendanceRequest> attendanceRequest);
+	public String saveSubjectStudentsAttendance(List<AttendanceRequest> attendanceRequest);
 
-	AttendanceResponse saveAttendance(AttendanceRequest attendanceRequest);
+	public AttendanceResponse createAttendance(AttendanceRequest attendanceRequest);
 
-	String updateMultipleAttendance(List<AttendanceUpdateRequest> attendanceUpdateRequests);
+	public String updateMultipleAttendance(List<AttendanceUpdateRequest> attendanceUpdateRequests);
 
-	List<AttendanceResponse> getAttendance(AttendanceRequest filterRequest);
+	public List<AttendanceResponse> getAttendance(AttendanceRequest filterRequest);
+
+	String bulkCreateAttendances(List<AddAttendanceRequest> requestList);
+
+	String getAttendanceByStudentIdAndSubjectCode(GetAttendanceByStudentIdAndSubjectCodeReq req);
+
+	List<GetStudentSemesterAttendanceRes> getAllStudentsSemesterAttendance(String subjectCode);
+
+	GetStudentAllSemesterAttendanceRes getAttendancesByStudentId(String studentId);
+	
+	
+
+	
+	
+	
+
+	
 	
 	
 
