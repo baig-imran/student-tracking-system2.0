@@ -65,6 +65,15 @@ public class SemesterController {
 		
 	}
 	
+	@PostMapping("/bulk")
+	public ResponseEntity<String> createBulkSemesters(
+	        @RequestBody List<SemBasicDetailsReq> semesterRequests) {
+	    
+	    String responses = semesterService.createBulkSemesters(semesterRequests);
+	    return new ResponseEntity<>(responses, HttpStatus.CREATED);
+	}
+
+	
 	@PostMapping("/addFaculty")
 	public ResponseEntity<SuccessResponse<List<AddFacultiesToSemRes>>> addFaculties(
 	        @RequestBody List<AddFacultiesToSemReq> reqList) {

@@ -21,6 +21,8 @@ import com.sts.dto.attendance.AddAttendanceRequest;
 import com.sts.dto.attendance.AttendanceRequest;
 import com.sts.dto.attendance.AttendanceResponse;
 import com.sts.dto.attendance.AttendanceUpdateRequest;
+import com.sts.dto.attendance.GetActiveSemesterAttendanceByStudentIdAndSemesterCodeRes;
+import com.sts.dto.attendance.GetActiveSemesterAttendanceByStudentIdRes;
 import com.sts.dto.attendance.GetAttendanceByStudentIdAndSubjectCodeReq;
 import com.sts.dto.attendance.GetStudentAllSemesterAttendanceRes;
 import com.sts.dto.attendance.GetStudentSemesterAttendanceRes;
@@ -527,6 +529,121 @@ public class AttendanceServiceImpl implements AttendanceService {
 	    response.setSemesterSubjectsAttendance(semesters);
 	    return response;
 	}
+	
+	@Override
+	public GetActiveSemesterAttendanceByStudentIdAndSemesterCodeRes getActiveSemesterAttendanceByStudentIdAndSemesterCode(String studentId, String semesterCode) {
+	    List<Attendance> attendanceList = attendanceRepository
+	            .findByStudent_StudentIdAndSemester_SemesterCode(studentId, semesterCode);
+	    	Semester activeSemester = semesterRepository.findActiveSemesterByStudentIdAndDate(studentId, LocalDate.now()).orElseThrow();
+	    	log.info(activeSemester.getSemesterCode());
+	    	
+	    	Map<String, List<Attendance>> groupedBySubject = attendanceList.stream()
+	            .collect(Collectors.groupingBy(a -> a.getSemesterSubject().getSubjectCode()));
+
+	    List<GetActiveSemesterAttendanceByStudentIdAndSemesterCodeRes.SubjectAttendance> subjectAttendances = new ArrayList<>();
+
+	    int totalOverallPresent = 0;
+	    int totalOverallWorkingDays = 0;
+
+	    for (Map.Entry<String, List<Attendance>> entry : groupedBySubject.entrySet()) {
+	        String subjectCode = entry.getKey();
+	        List<Attendance> subjectRecords = entry.getValue();
+
+	        int totalWorkingDays = subjectRecords.size();
+	        int totalDaysPresent = (int) subjectRecords.stream().filter(Attendance::getIsPresent).count();
+	        int totalDaysAbsent = totalWorkingDays - totalDaysPresent;
+
+	        double attendancePercentage = (totalWorkingDays > 0)
+	                ? (totalDaysPresent * 100.0 / totalWorkingDays)
+	                : 0.0;
+
+	        GetActiveSemesterAttendanceByStudentIdAndSemesterCodeRes.SubjectAttendance sa = new GetActiveSemesterAttendanceByStudentIdAndSemesterCodeRes.SubjectAttendance();
+	        sa.setSubjectCode(subjectCode);
+	        sa.setSubjectShortForm(subjectRecords.get(0).getSemesterSubject().getSubject().getSubjectShortForm()); // Assuming getSubject().getShortForm()
+	        sa.setTotalWorkingsDays(totalWorkingDays);
+	        sa.setTotalDaysPresent(totalDaysPresent);
+	        sa.setTotalDaysAbsent(totalDaysAbsent);
+	        sa.setAttendancePercentage(attendancePercentage);
+
+	        subjectAttendances.add(sa);
+
+	        totalOverallPresent += totalDaysPresent;
+	        totalOverallWorkingDays += totalWorkingDays;
+	    }
+
+	    double semesterAttendance = (totalOverallWorkingDays > 0)
+	            ? (totalOverallPresent * 100.0 / totalOverallWorkingDays)
+	            : 0.0;
+
+	    GetActiveSemesterAttendanceByStudentIdAndSemesterCodeRes res = new GetActiveSemesterAttendanceByStudentIdAndSemesterCodeRes();
+	    res.setStudentId(studentId);
+	    res.setSemesterCode(semesterCode);
+	    res.setSemesterAttendance(semesterAttendance);
+	    res.setSubjectAttendances(subjectAttendances); // Assuming you have this field and setter
+
+	    return res;
+	}
+	
+	
+	@Override
+	public GetActiveSemesterAttendanceByStudentIdRes getActiveSemesterAttendanceByStudentId(String studentId) {
+	    
+	    	Semester activeSemester = semesterRepository.findActiveSemesterByStudentIdAndDate(studentId, LocalDate.now()).orElseThrow();
+	    	String semesterCode = activeSemester.getSemesterCode();
+	    	
+	    	List<Attendance> attendanceList = attendanceRepository
+		            .findByStudent_StudentIdAndSemester_SemesterCode(studentId, semesterCode);
+	    	Map<String, List<Attendance>> groupedBySubject = attendanceList.stream()
+	            .collect(Collectors.groupingBy(a -> a.getSemesterSubject().getSubjectCode()));
+
+	    List<GetActiveSemesterAttendanceByStudentIdRes.SubjectAttendance> subjectAttendances = new ArrayList<>();
+
+	    int totalOverallPresent = 0;
+	    int totalOverallWorkingDays = 0;
+
+	    for (Map.Entry<String, List<Attendance>> entry : groupedBySubject.entrySet()) {
+	        String subjectCode = entry.getKey();
+	        List<Attendance> subjectRecords = entry.getValue();
+
+	        int totalWorkingDays = subjectRecords.size();
+	        int totalDaysPresent = (int) subjectRecords.stream().filter(Attendance::getIsPresent).count();
+	        int totalDaysAbsent = totalWorkingDays - totalDaysPresent;
+
+	        double attendancePercentage = (totalWorkingDays > 0)
+	                ? (totalDaysPresent * 100.0 / totalWorkingDays)
+	                : 0.0;
+
+	        GetActiveSemesterAttendanceByStudentIdRes.SubjectAttendance sa = new GetActiveSemesterAttendanceByStudentIdRes.SubjectAttendance();
+	        sa.setSubjectCode(subjectCode);
+	        sa.setSubjectShortForm(subjectRecords.get(0).getSemesterSubject().getSubject().getSubjectShortForm()); // Assuming getSubject().getShortForm()
+	        sa.setTotalWorkingsDays(totalWorkingDays);
+	        sa.setTotalDaysPresent(totalDaysPresent);
+	        sa.setTotalDaysAbsent(totalDaysAbsent);
+	        sa.setAttendancePercentage(attendancePercentage);
+
+	        subjectAttendances.add(sa);
+
+	        totalOverallPresent += totalDaysPresent;
+	        totalOverallWorkingDays += totalWorkingDays;
+	    }
+
+	    double semesterAttendance = (totalOverallWorkingDays > 0)
+	            ? (totalOverallPresent * 100.0 / totalOverallWorkingDays)
+	            : 0.0;
+
+	    GetActiveSemesterAttendanceByStudentIdRes res = new GetActiveSemesterAttendanceByStudentIdRes();
+	    res.setStudentId(studentId);
+	    res.setSemesterCode(semesterCode);
+	    res.setSemesterAttendance(semesterAttendance);
+	    res.setSubjectAttendances(subjectAttendances); // Assuming you have this field and setter
+
+	    return res;
+	}
+	
+	
+
+	
+	
 
 
 

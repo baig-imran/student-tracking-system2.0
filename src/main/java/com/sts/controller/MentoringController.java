@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sts.constants.Endpoints;
 import com.sts.constants.SuccessMessageEnum;
 import com.sts.constants.SuccessResponse;
+import com.sts.dto.attendance.GetStudentSemesterAttendanceRes;
 import com.sts.dto.mentoring.GetMentoringStudentsByFacultyIdRes;
-import com.sts.dto.student.StudentResponse;
 import com.sts.service.interfaces.MentoringService;
 import com.sts.utils.ResponseBuilder;
 
@@ -32,5 +32,7 @@ public class MentoringController {
 		return ResponseBuilder.ok(response, SuccessMessageEnum.STUDENTS_FETCHED, response.size());
 		
 	}
+	
+	
 	
 }

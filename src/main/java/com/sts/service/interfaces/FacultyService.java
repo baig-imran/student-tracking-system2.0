@@ -15,6 +15,7 @@ public interface FacultyService {
     String deleteFacultyById(String facultyId);
 	List<FacultyResponse> getFacultyByCriteria(FacultyGetRequest facultyGetRequest);
 	List<FacultyResponse> saveMultipleFaculties(List<FacultyCreateRequest> facultyRequests);
+	String addBulkFaculties(List<FacultyCreateRequest> requests);
 	
 }
 

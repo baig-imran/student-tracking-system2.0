@@ -37,6 +37,9 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long>, J
 	List<Attendance> findAllBySemesterSubject_SubjectCodeAndStudent_StudentIdIn(String subjectCode, List<String> studentIds);
 
 	List<Attendance> findAllByStudent_StudentId(String studentId);
+
+	List<Attendance> findByStudent_StudentIdAndSemester_SemesterCode(String studentId, String semesterCode);
+	
 	
 	
 	

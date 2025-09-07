@@ -211,6 +211,7 @@ import com.sts.dto.semester.AddSubjectsToSemReq;
 import com.sts.dto.semester.AddSubjectsToSemRes;
 import com.sts.dto.semester.SemBasicDetailsReq;
 import com.sts.dto.semester.SemBasicDetailsRes;
+import com.sts.dto.semester.SemesterCreateRequest;
 import com.sts.dto.semester.SemesterDetails;
 import com.sts.dto.semester.SemesterOverallDetailsRes;
 import com.sts.entity.Department;
@@ -286,6 +287,54 @@ public class SemesterServiceImpl implements SemesterService {
 		
 		return semesterDetails;
 	}
+	
+	
+	
+	@Override
+	@Transactional
+	public String createBulkSemesters(List<SemBasicDetailsReq> semesterRequests) {
+	    
+	    log.info("Starting bulk semester creation. Total records: {}", semesterRequests.size());
+
+	    // Step 1: Validate and prefetch department IDs
+	    Set<String> departmentIds = semesterRequests.stream()
+	            .map(SemBasicDetailsReq::getDepartmentId)
+	            .collect(Collectors.toSet());
+
+	    Map<String, Department> departmentMap = departmentRepository.findAllById(departmentIds).stream()
+	            .collect(Collectors.toMap(Department::getDepartmentId, Function.identity()));
+
+	    // Step 2: Map requests to Semester entities and assign departments
+	    List<Semester> semestersToSave = semesterRequests.stream()
+	            .map(req -> {
+	                Department department = departmentMap.get(req.getDepartmentId());
+	                if (department == null) {
+	                    throw new ResourceNotFoundException(
+	                        ErrorMessageEnum.DEPARTMENT_ID_NOT_FOUND.getMessage(req.getDepartmentId())
+	                    );
+	                }
+
+	                Semester semester = modelMapper.map(req, Semester.class);
+	                semester.setDepartment(department);
+
+	                return semester;
+	            })
+	            .collect(Collectors.toList());
+
+	    // Step 3: Save all semesters
+	    List<Semester> savedSemesters = semesterRepository.saveAll(semestersToSave);
+
+	    // Step 4: Map saved entities to response DTOs
+	    List<SemBasicDetailsRes> responses = savedSemesters.stream()
+	            .map(semester -> modelMapper.map(semester, SemBasicDetailsRes.class))
+	            .collect(Collectors.toList());
+
+	    log.info("Successfully saved {} semesters.", responses.size());
+
+	    return "Created "+responses.size()+" semesters";
+	}
+
+
 	
 	@Override
 	public SemesterOverallDetailsRes getOverallSemesterDetails(String semesterCode) {

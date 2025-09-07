@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sts.constants.Endpoints;
 import com.sts.constants.SuccessMessageEnum;
+import com.sts.constants.SuccessResponse;
 import com.sts.dto.faculty.FacultyCreateRequest;
 import com.sts.dto.faculty.FacultyGetRequest;
 import com.sts.dto.faculty.FacultyResponse;
@@ -59,6 +60,7 @@ public class FacultyController {
         FacultyResponse response = facultyService.saveFaculty(request);
         return ResponseBuilder.created(response, SuccessMessageEnum.FACULTY_CREATED, response.getFacultyId());
     }
+    
 
     @PostMapping("/bulk")
     public ResponseEntity<?> createMultipleFaculties(@RequestBody List<FacultyCreateRequest> requests) {

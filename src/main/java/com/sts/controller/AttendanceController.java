@@ -17,6 +17,8 @@ import com.sts.dto.attendance.AddAttendanceRequest;
 import com.sts.dto.attendance.AttendanceRequest;
 import com.sts.dto.attendance.AttendanceResponse;
 import com.sts.dto.attendance.AttendanceUpdateRequest;
+import com.sts.dto.attendance.GetActiveSemesterAttendanceByStudentIdAndSemesterCodeRes;
+import com.sts.dto.attendance.GetActiveSemesterAttendanceByStudentIdRes;
 import com.sts.dto.attendance.GetAttendanceByStudentIdAndSubjectCodeReq;
 import com.sts.dto.attendance.GetStudentAllSemesterAttendanceRes;
 import com.sts.dto.attendance.GetStudentSemesterAttendanceRes;
@@ -33,69 +35,113 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping(Endpoints.V1_ATTENDANCES)
 public class AttendanceController {
 
-    private final AttendanceService attendanceService;
+	private final AttendanceService attendanceService;
 
-    @GetMapping("/getAllStudentsSemesterAttendance/{subjectCode}")
-    public ResponseEntity<?> getAllStudentsSemesterAttendance(@PathVariable("subjectCode") String subjectCode) {
-        log.info("Fetching semester attendance for all students with subjectCode: {}", subjectCode);
-        List<GetStudentSemesterAttendanceRes> response = attendanceService.getAllStudentsSemesterAttendance(subjectCode);
-        return ResponseBuilder.ok(response, SuccessMessageEnum.ATTENDANCES_FETCHED, response.size());
-    }
+	@GetMapping("/getAllStudentsSemesterAttendance/{subjectCode}")
+	public ResponseEntity<?> getAllStudentsSemesterAttendance(@PathVariable("subjectCode") String subjectCode) {
+		log.info("Fetching semester attendance for all students with subjectCode: {}", subjectCode);
+		List<GetStudentSemesterAttendanceRes> response = attendanceService.getAllStudentsSemesterAttendance(subjectCode);
+		return ResponseBuilder.ok(response, SuccessMessageEnum.ATTENDANCES_FETCHED, response.size());
+	}
 
-    @GetMapping("/students/{studentId}")
-    public ResponseEntity<?> getAttendancesByStudentId(@PathVariable("studentId") String studentId) {
-        log.info("Fetching all semester attendance for studentId: {}", studentId);
-        GetStudentAllSemesterAttendanceRes response = attendanceService.getAttendancesByStudentId(studentId);
-        return ResponseBuilder.ok(response, SuccessMessageEnum.ATTENDANCE_FETCHED, studentId);
-    }
+	@GetMapping("/students/{studentId}")
+	public ResponseEntity<?> getAttendancesByStudentId(@PathVariable("studentId") String studentId) {
+		log.info("Fetching all semester attendance for studentId: {}", studentId);
+		GetStudentAllSemesterAttendanceRes response = attendanceService.getAttendancesByStudentId(studentId);
+		return ResponseBuilder.ok(response, SuccessMessageEnum.ATTENDANCE_FETCHED, studentId);
+	}
 
-    @PostMapping("/getAttendanceByStudentIdAndSubjectCode")
-    public ResponseEntity<?> getAttendanceByStudentIdAndSubjectCode(@RequestBody GetAttendanceByStudentIdAndSubjectCodeReq req) {
-        log.info("Fetching attendance for studentId: {} and subjectCode: {}", req.getStudentId(), req.getSubjectCode());
-        String response = attendanceService.getAttendanceByStudentIdAndSubjectCode(req);
-        return ResponseBuilder.ok(response, SuccessMessageEnum.ATTENDANCE_FETCHED, req.getStudentId(), req.getSubjectCode());
-    }
+	@PostMapping("/getAttendanceByStudentIdAndSubjectCode")
+	public ResponseEntity<?> getAttendanceByStudentIdAndSubjectCode(@RequestBody GetAttendanceByStudentIdAndSubjectCodeReq req) {
+		log.info("Fetching attendance for studentId: {} and subjectCode: {}", req.getStudentId(), req.getSubjectCode());
+		String response = attendanceService.getAttendanceByStudentIdAndSubjectCode(req);
+		return ResponseBuilder.ok(response, SuccessMessageEnum.ATTENDANCE_FETCHED, req.getStudentId(), req.getSubjectCode());
+	}
 
-    @PostMapping("/search")
-    public ResponseEntity<?> getAttendance(@RequestBody AttendanceRequest filterRequest) {
-        log.info("Searching attendance records with filter criteria: {}", filterRequest);
-        List<AttendanceResponse> attendanceList = attendanceService.getAttendance(filterRequest);
-        log.info("Found {} attendance records", attendanceList.size());
-        return ResponseBuilder.ok(attendanceList, SuccessMessageEnum.ATTENDANCES_FETCHED, attendanceList.size());
-    }
+	@PostMapping("/search")
+	public ResponseEntity<?> getAttendance(@RequestBody AttendanceRequest filterRequest) {
+		log.info("Searching attendance records with filter criteria: {}", filterRequest);
+		List<AttendanceResponse> attendanceList = attendanceService.getAttendance(filterRequest);
+		log.info("Found {} attendance records", attendanceList.size());
+		return ResponseBuilder.ok(attendanceList, SuccessMessageEnum.ATTENDANCES_FETCHED, attendanceList.size());
+	}
 
-    @PostMapping
-    public ResponseEntity<?> createAttendance(@RequestBody AttendanceRequest attendanceRequest) {
-        log.info("Creating new attendance record: {}", attendanceRequest);
-        AttendanceResponse savedAttendance = attendanceService.createAttendance(attendanceRequest);
-        return ResponseBuilder.created(savedAttendance, SuccessMessageEnum.ATTENDANCE_CREATED);
-    }
+	@PostMapping
+	public ResponseEntity<?> createAttendance(@RequestBody AttendanceRequest attendanceRequest) {
+		log.info("Creating new attendance record: {}", attendanceRequest);
+		AttendanceResponse savedAttendance = attendanceService.createAttendance(attendanceRequest);
+		return ResponseBuilder.created(savedAttendance, SuccessMessageEnum.ATTENDANCE_CREATED);
+	}
 
-    @PutMapping
-    public ResponseEntity<?> updateAttendance(@RequestBody AttendanceUpdateRequest attendanceUpdateRequest) {
-        log.info("Updating attendance record: {}", attendanceUpdateRequest);
-        String updateStatus = attendanceService.updateAttendance(attendanceUpdateRequest);
-        return ResponseBuilder.ok(updateStatus, SuccessMessageEnum.ATTENDANCE_UPDATED);
-    }
+	@PutMapping
+	public ResponseEntity<?> updateAttendance(@RequestBody AttendanceUpdateRequest attendanceUpdateRequest) {
+		log.info("Updating attendance record: {}", attendanceUpdateRequest);
+		String updateStatus = attendanceService.updateAttendance(attendanceUpdateRequest);
+		return ResponseBuilder.ok(updateStatus, SuccessMessageEnum.ATTENDANCE_UPDATED);
+	}
 
-    @PostMapping("/bulk")
-    public ResponseEntity<?> createSubjectStudentsAttendance(@RequestBody List<AttendanceRequest> attendanceRequests) {
-        log.info("Creating bulk attendance records for {} students", attendanceRequests.size());
-        String creationStatus = attendanceService.saveSubjectStudentsAttendance(attendanceRequests);
-        return ResponseBuilder.created(creationStatus, SuccessMessageEnum.ATTENDANCES_BULK_CREATED, attendanceRequests.size());
-    }
+	@PostMapping("/bulk")
+	public ResponseEntity<?> createSubjectStudentsAttendance(@RequestBody List<AttendanceRequest> attendanceRequests) {
+		log.info("Creating bulk attendance records for {} students", attendanceRequests.size());
+		String creationStatus = attendanceService.saveSubjectStudentsAttendance(attendanceRequests);
+		return ResponseBuilder.created(creationStatus, SuccessMessageEnum.ATTENDANCES_BULK_CREATED, attendanceRequests.size());
+	}
 
-    @PostMapping("/bulk2")
-    public ResponseEntity<?> bulkCreateAttendances(@RequestBody List<AddAttendanceRequest> requestList) {
-        log.info("Creating multi-day attendance records for {} students", requestList.size());
-        String creationStatus = attendanceService.bulkCreateAttendances(requestList);
-        return ResponseBuilder.created(creationStatus, SuccessMessageEnum.ATTENDANCES_BULK_CREATED, requestList.size());
-    }
+	@PostMapping("/bulk2")
+	public ResponseEntity<?> bulkCreateAttendances(@RequestBody List<AddAttendanceRequest> requestList) {
+		log.info("Creating multi-day attendance records for {} students", requestList.size());
+		String creationStatus = attendanceService.bulkCreateAttendances(requestList);
+		return ResponseBuilder.created(creationStatus, SuccessMessageEnum.ATTENDANCES_BULK_CREATED, requestList.size());
+	}
 
-    @PutMapping("/bulk")
-    public ResponseEntity<?> updateMultipleAttendance(@RequestBody List<AttendanceUpdateRequest> attendanceUpdateRequests) {
-        log.info("Updating bulk attendance records for {} students", attendanceUpdateRequests.size());
-        String updateStatus = attendanceService.updateMultipleAttendance(attendanceUpdateRequests);
-        return ResponseBuilder.ok(updateStatus, SuccessMessageEnum.ATTENDANCES_BULK_UPDATED, attendanceUpdateRequests.size());
-    }
+	@PutMapping("/bulk")
+	public ResponseEntity<?> updateMultipleAttendance(@RequestBody List<AttendanceUpdateRequest> attendanceUpdateRequests) {
+		log.info("Updating bulk attendance records for {} students", attendanceUpdateRequests.size());
+		String updateStatus = attendanceService.updateMultipleAttendance(attendanceUpdateRequests);
+		return ResponseBuilder.ok(updateStatus, SuccessMessageEnum.ATTENDANCES_BULK_UPDATED, attendanceUpdateRequests.size());
+	}
+
+	@GetMapping("/student/{studentId}/semester/{semesterCode}")
+	public ResponseEntity<?> getActiveSemesterAttendanceByStudentIdAndSemesterCode(
+			@PathVariable("studentId") String studentId,
+			@PathVariable("semesterCode") String semesterCode) {
+
+		GetActiveSemesterAttendanceByStudentIdAndSemesterCodeRes response =
+				attendanceService.getActiveSemesterAttendanceByStudentIdAndSemesterCode(studentId, semesterCode);
+
+		return ResponseBuilder.ok(
+				response,
+				SuccessMessageEnum.ATTENDANCE_FETCHED,
+				String.format("Attendance fetched for student %s in semester %s", studentId, semesterCode)
+				);
+	}
+
+	@GetMapping("/student/{studentId}")
+	public ResponseEntity<?> getActiveSemesterAttendanceByStudentId(
+			@PathVariable("studentId") String studentId) {
+
+		GetActiveSemesterAttendanceByStudentIdRes response =
+				attendanceService.getActiveSemesterAttendanceByStudentId(studentId);
+
+		return ResponseBuilder.ok(
+				response,
+				SuccessMessageEnum.ATTENDANCE_FETCHED,
+				String.format("Attendance fetched for student %s ", studentId)
+				);
+	}
+	
+//	@GetMapping("/students/low-attendance")
+//	public ResponseEntity<?> getActiveSemesterLowAttendanceStudents() {
+//
+//	    GetActiveSemesterLowAttendanceStudentsRes response =
+//	            attendanceService.getActiveSemesterLowAttendanceStudents();
+//
+//	    return ResponseBuilder.ok(
+//	            response,
+//	            SuccessMessageEnum.ATTENDANCE_FETCHED,
+//	            String.format("Low attendance students fetched for active semester below")
+//	    );
+//	}
+
+
 }

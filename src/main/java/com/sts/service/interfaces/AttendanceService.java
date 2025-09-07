@@ -6,6 +6,8 @@ import com.sts.dto.attendance.AddAttendanceRequest;
 import com.sts.dto.attendance.AttendanceRequest;
 import com.sts.dto.attendance.AttendanceResponse;
 import com.sts.dto.attendance.AttendanceUpdateRequest;
+import com.sts.dto.attendance.GetActiveSemesterAttendanceByStudentIdAndSemesterCodeRes;
+import com.sts.dto.attendance.GetActiveSemesterAttendanceByStudentIdRes;
 import com.sts.dto.attendance.GetAttendanceByStudentIdAndSubjectCodeReq;
 import com.sts.dto.attendance.GetStudentAllSemesterAttendanceRes;
 import com.sts.dto.attendance.GetStudentSemesterAttendanceRes;
@@ -30,13 +32,11 @@ public interface AttendanceService {
 	List<GetStudentSemesterAttendanceRes> getAllStudentsSemesterAttendance(String subjectCode);
 
 	GetStudentAllSemesterAttendanceRes getAttendancesByStudentId(String studentId);
-	
-	
 
-	
-	
-	
+	GetActiveSemesterAttendanceByStudentIdAndSemesterCodeRes getActiveSemesterAttendanceByStudentIdAndSemesterCode(String studentId,
+			String semesterCode);
 
+	GetActiveSemesterAttendanceByStudentIdRes getActiveSemesterAttendanceByStudentId(String studentId);
 	
 	
 	

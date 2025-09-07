@@ -12,6 +12,7 @@ import com.sts.dto.semester.AddSubjectsToSemReq;
 import com.sts.dto.semester.AddSubjectsToSemRes;
 import com.sts.dto.semester.SemBasicDetailsReq;
 import com.sts.dto.semester.SemBasicDetailsRes;
+import com.sts.dto.semester.SemesterCreateRequest;
 import com.sts.dto.semester.SemesterDetails;
 import com.sts.dto.semester.SemesterOverallDetailsRes;
 
@@ -25,6 +26,8 @@ public interface SemesterService{
 	List<AddSubjectsToSemRes> addSubjectsToSemester(List<AddSubjectsToSemReq> req);
 	List<AddStudentsToSubjectRes> addStudentsToSubject(List<AddStudentsToSubjectReq> req);
 	SemesterOverallDetailsRes getOverallSemesterDetails(String semesterCode);
+	String createBulkSemesters(List<SemBasicDetailsReq> semesterRequests);
+	
 	
 	
 
