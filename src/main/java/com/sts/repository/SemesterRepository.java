@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.sts.dto.semester.GetStartDateAndEndDateBySemesterCodeRes;
 import com.sts.entity.Semester;
 
 @Repository
@@ -22,8 +23,15 @@ public interface SemesterRepository extends JpaRepository<Semester, String> {
 	
 	@Query("SELECT s FROM Semester s WHERE :currentDate BETWEEN s.startDate AND s.endDate")
 	List<Semester> findActiveSemesters(@Param("currentDate") LocalDate currentDate);
-
 	
+	@Query("""
+		    SELECT new com.sts.dto.semester.GetStartDateAndEndDateBySemesterCodeRes(s.startDate, s.endDate)
+		    FROM Semester s
+		    WHERE s.semesterCode = :semesterCode
+		""")
+		Optional<GetStartDateAndEndDateBySemesterCodeRes> getStartDateAndEndDateBySemesterCode(
+		        @Param("semesterCode") String semesterCode);
+
 	@Query("""
 		    SELECT s FROM Semester s
 		    JOIN s.semesterStudents ss
@@ -35,5 +43,14 @@ public interface SemesterRepository extends JpaRepository<Semester, String> {
 		    @Param("studentId") String studentId,
 		    @Param("currentDate") LocalDate currentDate
 		);
+	
+	@Query("""
+		    SELECT s FROM Semester s
+		    JOIN s.semesterStudents ss
+		    JOIN ss.student st
+		    WHERE st.studentId = :studentId
+		    ORDER BY s.semesterSerialNumber DESC
+		""")
+		Optional<Semester> findLatestSemesterByStudentId(@Param("studentId") String studentId);
 
 }

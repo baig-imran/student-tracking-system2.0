@@ -22,12 +22,14 @@ import com.sts.dto.semester.AddStudentsToSubjectReq;
 import com.sts.dto.semester.AddStudentsToSubjectRes;
 import com.sts.dto.semester.AddSubjectsToSemReq;
 import com.sts.dto.semester.AddSubjectsToSemRes;
+import com.sts.dto.semester.GetStartDateAndEndDateBySemesterCodeRes;
 import com.sts.dto.semester.SemBasicDetailsReq;
 import com.sts.dto.semester.SemBasicDetailsRes;
 import com.sts.dto.semester.SemesterDetails;
 import com.sts.dto.semester.SemesterOverallDetailsReq;
 import com.sts.dto.semester.SemesterOverallDetailsRes;
 import com.sts.service.interfaces.SemesterService;
+import com.sts.utils.ResponseBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -132,6 +134,27 @@ public class SemesterController {
 
 	    return ResponseEntity.ok(response);
 	}
+
+	@GetMapping("/getStartDateAndEndDateBySemesterCode/{semesterCode}")
+	public ResponseEntity<SuccessResponse<GetStartDateAndEndDateBySemesterCodeRes>> getStartDateAndEndDateBySemesterCode(
+	        @PathVariable("semesterCode") String semesterCode) {
+
+	    log.info("Received request to fetch start and end date for semesterCode: {}", semesterCode);
+
+	    // Call the service method to fetch the start and end date
+	    GetStartDateAndEndDateBySemesterCodeRes responseData = semesterService.getStartDateAndEndDateBySemesterCode(semesterCode);
+
+	    // Wrap the response in SuccessResponse
+	    SuccessResponse<GetStartDateAndEndDateBySemesterCodeRes> response = new SuccessResponse<>(
+	            responseData,
+	            SuccessMessageEnum.SEMESTER_DATES_FETCHED.getMessage(semesterCode),
+	            HttpStatus.OK.value()
+	    );
+
+	    // Return the response with OK status
+	    return ResponseEntity.ok(response);
+	}
+
 
 
 

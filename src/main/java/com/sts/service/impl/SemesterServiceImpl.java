@@ -209,9 +209,9 @@ import com.sts.dto.semester.AddStudentsToSubjectReq;
 import com.sts.dto.semester.AddStudentsToSubjectRes;
 import com.sts.dto.semester.AddSubjectsToSemReq;
 import com.sts.dto.semester.AddSubjectsToSemRes;
+import com.sts.dto.semester.GetStartDateAndEndDateBySemesterCodeRes;
 import com.sts.dto.semester.SemBasicDetailsReq;
 import com.sts.dto.semester.SemBasicDetailsRes;
-import com.sts.dto.semester.SemesterCreateRequest;
 import com.sts.dto.semester.SemesterDetails;
 import com.sts.dto.semester.SemesterOverallDetailsRes;
 import com.sts.entity.Department;
@@ -796,6 +796,13 @@ public class SemesterServiceImpl implements SemesterService {
 
 	    return results;
 	}
+	
+	@Override
+	public GetStartDateAndEndDateBySemesterCodeRes getStartDateAndEndDateBySemesterCode(String semesterCode) {
+	    return semesterRepository.getStartDateAndEndDateBySemesterCode(semesterCode)
+	            .orElseThrow(() -> new ResourceNotFoundException("Semester not found for code: " + semesterCode));
+	}
+
 
 
 }

@@ -33,6 +33,14 @@ public interface StudentExamRepository extends JpaRepository<StudentExam, Long>,
 		        @Param("studentId") String studentId,
 		        @Param("subjectCode") String subjectCode,
 		        @Param("examSubType") String examSubType);
+	List<StudentExam> findByStudent_StudentIdInAndExam_ExamTypeAndExam_Semester_SemesterCode(List<String> studentIds,
+			String string, String semesterCode);
+	List<StudentExam> findByStudent_StudentIdAndExam_Semester_SemesterCode(String studentId, String semesterCode);
+	List<StudentExam> findByStudent_StudentIdInAndExam_ExamType(List<String> studentIds, String string);
+	List<StudentExam> findByStudent_StudentIdAndExam_ExamType(String studentId, String string);
+	
+	
+	
 
 
 }

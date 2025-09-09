@@ -3,6 +3,7 @@ package com.sts.service.impl;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -18,11 +19,18 @@ import org.springframework.stereotype.Service;
 import com.sts.constants.ErrorMessageEnum;
 import com.sts.dto.exam.studentexam.AddStudentsExamDataReq;
 import com.sts.dto.exam.studentexam.AddStudentsExamDataRes;
+import com.sts.dto.exam.studentexam.GetInternalMarksByStudentIdAndSemesterCodeRes;
+import com.sts.dto.exam.studentexam.GetLowExternalMarksStudentsByFacultyIdRes;
+import com.sts.dto.exam.studentexam.GetLowInternalMarksStudentsByFacultyIdRes;
 import com.sts.dto.exam.studentexam.GetStudentAllSemesterExamDetailsRes;
 import com.sts.dto.exam.studentexam.GetStudentAllSemesterExamDetailsRes.SubjectExamSummary;
 import com.sts.dto.exam.studentexam.GetStudentAllSemesterInternalExamDetailsRes;
 import com.sts.dto.exam.studentexam.GetStudentCompleteResultRes;
+import com.sts.dto.exam.studentexam.GetStudentsWithSupplyByFacultyIdRes;
+import com.sts.dto.exam.studentexam.GetSupplyExamDetailsByStudentIdRes;
 import com.sts.entity.Exam;
+import com.sts.entity.Semester;
+import com.sts.entity.SemesterSubject;
 import com.sts.entity.Student;
 import com.sts.entity.StudentExam;
 import com.sts.entity.StudentSubject;
@@ -595,6 +603,48 @@ public class StudentExamServiceImpl implements StudentExamService {
 	    log.info("QualifiedStudents: {}", qualifiedStudents);
 	    return qualifiedStudents;
 	}
+	@Override
+	public List<String> getInternalExamDisQualifiedStudentsBySubject(String subjectCode) {
+	    // Fetch only internal exams for the given subject
+	    List<StudentExam> internalExams = studentExamRepository
+	            .findByExam_SemesterSubject_SubjectCodeAndExam_ExamType(subjectCode, "internal");
+
+	    // Group by studentId → List of StudentExam records
+	    Map<String, List<StudentExam>> groupedByStudent =
+	            internalExams.stream()
+	                    .collect(Collectors.groupingBy(e -> e.getStudent().getStudentId()));
+
+	    List<String> disqualifiedStudents = new ArrayList<>();
+
+	    // Iterate over each student’s grouped exam records
+	    for (Map.Entry<String, List<StudentExam>> entry : groupedByStudent.entrySet()) {
+	        String studentId = entry.getKey();
+	        List<StudentExam> exams = entry.getValue();
+
+	        // Build a map of examName (lowercase) → marksObtained
+	        Map<String, Double> examMarks = exams.stream()
+	                .collect(Collectors.toMap(
+	                        e -> e.getExam().getExamName().toLowerCase(), // e.g., "aat1", "mid2"
+	                        e -> e.getMarksObtained() != null ? e.getMarksObtained() : 0.0,
+	                        Double::sum // in case of duplicate exam names
+	                ));
+
+	        // Compute internal marks using utility logic
+	        Double totalMarks = finalInternalMarks(examMarks);
+
+	        // Set pass marks (you can fetch from subject table if needed)
+	        Double passMarks = 15.0;
+
+	        // If marks are less than pass marks, student is disqualified
+	        if (totalMarks < passMarks) {
+	            disqualifiedStudents.add(studentId);
+	        }
+	    }
+
+	    log.info("DisqualifiedStudents for subject {}: {}", subjectCode, disqualifiedStudents);
+	    return disqualifiedStudents;
+	}
+
 	private Double finalInternalMarks(Map<String, Double> examMarks) {
 	    // Extract safely
 	    Double aat1 = examMarks.getOrDefault("aat1", 0.0);
@@ -822,13 +872,372 @@ public class StudentExamServiceImpl implements StudentExamService {
 	    return 0; // fail
 	}
 
+    private static final double PASS_MARKS = 15.0;
+    
+    @Override
+    public List<GetLowInternalMarksStudentsByFacultyIdRes> getLowInternalMarksStudentsByFacultyId(String facultyId) {
+        log.info("Fetching low internal marks students for facultyId: {}", facultyId);
+
+        List<Student> students = studentRepository.findAllByFaculty_FacultyId(facultyId);
+        if (students == null || students.isEmpty()) {
+            log.warn("No students found for facultyId: {}", facultyId);
+            return Collections.emptyList();
+        }
+
+        List<String> studentIds = students.stream().map(Student::getStudentId).collect(Collectors.toList());
+        LocalDate today = LocalDate.now();
+
+        // Try active semester first
+        Semester semester = semesterRepository
+                .findActiveSemesterByStudentIdAndDate(studentIds.get(0), today)
+                .orElseGet(() -> {
+                    log.info("No active semester found for studentId: {}, falling back to latest semester", studentIds.get(0));
+                    return semesterRepository.findLatestSemesterByStudentId(studentIds.get(0)).orElse(null);
+                });
+
+        if (semester == null) {
+            log.warn("No active or latest semester found for studentId: {}", studentIds.get(0));
+            return Collections.emptyList();
+        }
+
+        log.info("Using semester: {} for evaluation", semester.getSemesterCode());
+
+        List<StudentExam> internalExams = studentExamRepository
+                .findByStudent_StudentIdInAndExam_ExamTypeAndExam_Semester_SemesterCode(
+                        studentIds, "internal", semester.getSemesterCode());
+
+        log.info("Fetched {} internal exam records for semester: {}", internalExams.size(), semester.getSemesterCode());
+
+        // Group exams: studentId -> subjectCode -> List<StudentExam>
+        Map<String, Map<String, List<StudentExam>>> studentSubjectExams = internalExams.stream()
+                .collect(Collectors.groupingBy(
+                        e -> e.getStudent().getStudentId(),
+                        Collectors.groupingBy(e -> e.getExam().getSemesterSubject().getSubjectCode())
+                ));
+
+        List<GetLowInternalMarksStudentsByFacultyIdRes> lowInternalStudents = new ArrayList<>();
+
+        for (Map.Entry<String, Map<String, List<StudentExam>>> studentEntry : studentSubjectExams.entrySet()) {
+            String studentId = studentEntry.getKey();
+            Student student = students.stream()
+                    .filter(s -> s.getStudentId().equals(studentId))
+                    .findFirst()
+                    .orElse(null);
+
+            if (student == null) {
+                log.warn("Student record not found for ID: {}", studentId);
+                continue;
+            }
+
+            boolean hasLowSubject = false;
+            double totalInternals = 0.0;
+            double totalExternals = 0.0;
+            double totalCredits = 0.0;
+            double weightedGradePoints = 0.0;
+
+            for (Map.Entry<String, List<StudentExam>> subjectEntry : studentEntry.getValue().entrySet()) {
+                String subjectCode = subjectEntry.getKey();
+                List<StudentExam> subjectExams = subjectEntry.getValue();
+
+                Map<String, Double> examMarks = subjectExams.stream()
+                        .collect(Collectors.toMap(
+                                e -> e.getExam().getExamName().toLowerCase(),
+                                e -> e.getMarksObtained() != null ? e.getMarksObtained() : 0.0,
+                                Double::sum
+                        ));
+
+                double internals = calculateFinalInternalMarks(examMarks);
+                double externals = subjectExams.stream()
+                        .filter(e -> "external".equalsIgnoreCase(e.getExam().getExamType())
+                                && "regular".equalsIgnoreCase(e.getExam().getExamSubType())
+                                && Boolean.TRUE.equals(e.getIsPresent()))
+                        .mapToDouble(e -> e.getMarksObtained() != null ? e.getMarksObtained() : 0.0)
+                        .sum();
+
+                double subjectTotal = internals + externals;
+                int subjectCredits = subjectExams.get(0).getExam().getSemesterSubject().getSubject().getCredits();
+                int gpa = calculateGpa(subjectTotal);
+
+                totalInternals += internals;
+                totalExternals += externals;
+                totalCredits += subjectCredits;
+                weightedGradePoints += gpa * subjectCredits;
+
+                log.debug("Student: {}, Subject: {}, Internals: {}, Externals: {}, Total: {}",
+                        studentId, subjectCode, internals, externals, subjectTotal);
+
+                if (internals < PASS_MARKS) {
+                    hasLowSubject = true;
+                    log.info("Student {} has low internals ({}) in subject {}", studentId, internals, subjectCode);
+                }
+            }
+
+            if (hasLowSubject) {
+                GetLowInternalMarksStudentsByFacultyIdRes res = new GetLowInternalMarksStudentsByFacultyIdRes();
+                res.setStudentId(studentId);
+                res.setStudentName(student.getStudentName());
+                res.setSemesterCode(semester.getSemesterCode());
+                res.setTotalInternals(totalInternals);
+                res.setTotalExternals(totalExternals);
+                res.setTotal(totalInternals + totalExternals);
+                res.setSgpa(totalCredits > 0 ? weightedGradePoints / totalCredits : 0.0);
+                res.setAcademicYear(String.valueOf(semester.getAcademicYear()));
+
+                log.info("Student {} added to low internal list", studentId);
+                lowInternalStudents.add(res);
+            }
+        }
+
+        log.info("Total students with low internal marks: {}", lowInternalStudents.size());
+        return lowInternalStudents;
+    }
+
+	private double calculateFinalInternalMarks(Map<String, Double> examMarks) {
+        double aat1 = examMarks.getOrDefault("aat1", 0.0);
+        double aat2 = examMarks.getOrDefault("aat2", 0.0);
+        double mid1 = examMarks.getOrDefault("mid1", 0.0);
+        double mid2 = examMarks.getOrDefault("mid2", 0.0);
+
+        double finalAat = (aat1 + aat2) / 2.0;
+
+        double bestMid = Math.max(mid1, mid2);
+        double worstMid = Math.min(mid1, mid2);
+
+        double finalMid = 0.0;
+        if (bestMid > 0 && worstMid > 0) {
+            finalMid = (bestMid * 0.75) + (worstMid * 0.25);
+        } else if (bestMid > 0) {
+            finalMid = bestMid / 2.33;
+        } else if (worstMid > 0) {
+            finalMid = worstMid / 2.33;
+        }
+
+        finalMid = Math.min(finalMid, 20.0);
+        return Math.ceil(finalAat + finalMid);
+    }
+	
+	@Override
+	public List<GetInternalMarksByStudentIdAndSemesterCodeRes> getInternalMarksByStudentIdAndSemesterCode(String studentId, String semesterCode) {
+	    List<StudentExam> exams = studentExamRepository
+	            .findByStudent_StudentIdAndExam_Semester_SemesterCode(studentId, semesterCode);
+
+	    if (exams.isEmpty()) {
+	        throw new ResourceNotFoundException("No exam data found for studentId: " + studentId + " and semester: " + semesterCode);
+	    }
+
+	    Map<String, List<StudentExam>> groupedBySubject = exams.stream()
+	            .collect(Collectors.groupingBy(e -> e.getExam().getSemesterSubject().getSubjectCode()));
+
+	    List<GetInternalMarksByStudentIdAndSemesterCodeRes> results = new ArrayList<>();
+
+	    for (Map.Entry<String, List<StudentExam>> entry : groupedBySubject.entrySet()) {
+	        List<StudentExam> subjectExams = entry.getValue();
+	        Exam exam = subjectExams.get(0).getExam();
+
+	        Map<String, Double> examMarks = subjectExams.stream()
+	                .collect(Collectors.toMap(
+	                        e -> e.getExam().getExamName().toLowerCase(),
+	                        e -> e.getMarksObtained() != null ? e.getMarksObtained() : 0.0,
+	                        Double::sum
+	                ));
+
+	        double internals = calculateFinalInternalMarks(examMarks);
+	        double externals = subjectExams.stream()
+	                .filter(e -> "external".equalsIgnoreCase(e.getExam().getExamType())
+	                        && "regular".equalsIgnoreCase(e.getExam().getExamSubType())
+	                        && Boolean.TRUE.equals(e.getIsPresent()))
+	                .mapToDouble(e -> e.getMarksObtained() != null ? e.getMarksObtained() : 0.0)
+	                .sum();
+
+	        double total = internals + externals;
+	        int credits = exam.getSemesterSubject().getSubject().getCredits();
+	        int gpa = calculateGpa(total);
+
+	        GetInternalMarksByStudentIdAndSemesterCodeRes dto = new GetInternalMarksByStudentIdAndSemesterCodeRes();
+	        dto.setSubjectCode(exam.getSemesterSubject().getSubjectCode());
+	        dto.setSubjectTitle(exam.getSemesterSubject().getSubject().getSubjectTitle());
+	        dto.setSubjectShortForm(exam.getSemesterSubject().getSubject().getSubjectShortForm());
+	        dto.setInternals(internals);
+	        dto.setExternals(externals);
+	        dto.setTotal(total);
+	        dto.setCredits(credits);
+	        dto.setGpa(gpa);
+	        dto.setPassDate(LocalDate.now().format(DateTimeFormatter.ofPattern("MMM-yy", Locale.ENGLISH)).toUpperCase());
+
+	        results.add(dto);
+	    }
+
+	    return results;
+	}
 	
 	
+	@Override
+	public List<GetLowExternalMarksStudentsByFacultyIdRes> getLowExternalMarksStudentsByFacultyId(String facultyId) {
+	    log.info("Fetching students with low external marks for facultyId: {}", facultyId);
+	    double EXTERNAL_PASS_MARKS = 25.0;
+	    List<Student> students = studentRepository.findAllByFaculty_FacultyId(facultyId);
+	    if (students == null || students.isEmpty()) {
+	        log.warn("No students found for facultyId: {}", facultyId);
+	        return Collections.emptyList();
+	    }
+
+	    List<String> studentIds = students.stream()
+	            .map(Student::getStudentId)
+	            .collect(Collectors.toList());
+
+	    LocalDate today = LocalDate.now();
+
+	    // Use first student to get active or latest semester (assuming same semester for all)
+	    Semester semester = semesterRepository
+	            .findActiveSemesterByStudentIdAndDate(studentIds.get(0), today)
+	            .orElseGet(() -> semesterRepository.findLatestSemesterByStudentId(studentIds.get(0)).orElse(null));
+
+	    if (semester == null) {
+	        log.warn("No semester found for student: {}", studentIds.get(0));
+	        return Collections.emptyList();
+	    }
+
+	    // Fetch only external exams for these students in the selected semester
+	    List<StudentExam> externalExams = studentExamRepository
+	            .findByStudent_StudentIdInAndExam_ExamTypeAndExam_Semester_SemesterCode(
+	                    studentIds, "external", semester.getSemesterCode());
+
+	    log.info("Found {} external exam records for semester {}", externalExams.size(), semester.getSemesterCode());
+
+	    List<GetLowExternalMarksStudentsByFacultyIdRes> response = new ArrayList<>();
+
+	    for (StudentExam exam : externalExams) {
+//	        if (!Boolean.TRUE.equals(exam.getIsPresent())) continue; // Skip absentees
+
+	        Double marks = exam.getMarksObtained() != null ? exam.getMarksObtained() : 0.0;
+
+	        if (marks < EXTERNAL_PASS_MARKS) {
+	            Student student = exam.getStudent();
+	            SemesterSubject subject = exam.getExam().getSemesterSubject();
+
+	            GetLowExternalMarksStudentsByFacultyIdRes dto = new GetLowExternalMarksStudentsByFacultyIdRes();
+	            dto.setStudentId(student.getStudentId());
+	            dto.setStudentName(student.getStudentName());
+	            dto.setSubjectCode(subject.getSubjectCode());
+	            dto.setSubjectTitle(subject.getSubject().getSubjectTitle());
+	            dto.setSubjectShortForm(subject.getSubject().getSubjectShortForm());
+	            dto.setExamCode(exam.getExamCode());
+	            dto.setMarksObtained(marks);
+	            dto.setPassMarks(EXTERNAL_PASS_MARKS);
+	            //dto.setPassDate(LocalDate.now().format(DateTimeFormatter.ofPattern("MMM-yy")).toUpperCase());
+
+	            response.add(dto);
+	        }
+	    }
+
+	    log.info("Found {} students with low external marks", response.size());
+
+	    return response;
+	}
 	
+	@Override
+	public List<GetStudentsWithSupplyByFacultyIdRes> getStudentsWithSupplyByFacultyId(String facultyId) {
+	    log.info("Fetching students with supply (failed external subjects across all semesters) for facultyId: {}", facultyId);
+	    double EXTERNAL_PASS_MARKS = 25.0;
+
+	    List<Student> students = studentRepository.findAllByFaculty_FacultyId(facultyId);
+	    if (students == null || students.isEmpty()) {
+	        log.warn("No students found for facultyId: {}", facultyId);
+	        return Collections.emptyList();
+	    }
+
+	    List<String> studentIds = students.stream()
+	            .map(Student::getStudentId)
+	            .collect(Collectors.toList());
+
+	    // Fetch all external exam records across all semesters
+	    List<StudentExam> externalExams = studentExamRepository
+	            .findByStudent_StudentIdInAndExam_ExamType(studentIds, "external");
+
+	    log.info("Found {} external exam records across all semesters", externalExams.size());
+
+	    // Group by student
+	    Map<String, List<StudentExam>> examsByStudent = externalExams.stream()
+	            .collect(Collectors.groupingBy(exam -> exam.getStudent().getStudentId()));
+
+	    List<GetStudentsWithSupplyByFacultyIdRes> response = new ArrayList<>();
+
+	    for (Map.Entry<String, List<StudentExam>> entry : examsByStudent.entrySet()) {
+	        String studentId = entry.getKey();
+	        List<StudentExam> studentExams = entry.getValue();
+
+	        long supplyCount = studentExams.stream()
+	                // .filter(exam -> Boolean.TRUE.equals(exam.getIsPresent())) // uncomment if needed
+	                .filter(exam -> {
+	                    Double marks = exam.getMarksObtained() != null ? exam.getMarksObtained() : 0.0;
+	                    return marks < EXTERNAL_PASS_MARKS;
+	                })
+	                .count();
+
+	        if (supplyCount > 0) {
+	            Student student = studentExams.get(0).getStudent(); // All exams belong to same student
+	            GetStudentsWithSupplyByFacultyIdRes dto = new GetStudentsWithSupplyByFacultyIdRes();
+	            dto.setStudentId(studentId);
+	            dto.setStudentName(student.getStudentName());
+	            dto.setSupplyCount((int) supplyCount);
+	            response.add(dto);
+	        }
+	    }
+
+	    log.info("Found {} students with supply subjects (all semesters)", response.size());
+	    return response;
+	}
 	
+	@Override
+	public List<GetSupplyExamDetailsByStudentIdRes> getSupplyExamDetailsByStudentId(String studentId) {
+	    log.info("Fetching supply exam details for studentId: {}", studentId);
+	    final double EXTERNAL_PASS_MARKS = 25.0;
+
+	    Student student = studentRepository.findById(studentId)
+		        .orElseThrow(() -> new ResourceNotFoundException(
+		            ErrorMessageEnum.STUDENT_ID_NOT_FOUND.getMessage(studentId)));
+
+	    // Fetch all external exams (across all semesters) for the student
+	    List<StudentExam> externalExams = studentExamRepository
+	            .findByStudent_StudentIdAndExam_ExamType(studentId, "external");
+
+	    if (externalExams.isEmpty()) {
+	        log.info("No external exams found for studentId: {}", studentId);
+	        return Collections.emptyList();
+	    }
+
+	    List<GetSupplyExamDetailsByStudentIdRes> supplyExams = new ArrayList<>();
+
+	    for (StudentExam exam : externalExams) {
+	        Double marks = exam.getMarksObtained() != null ? exam.getMarksObtained() : 0.0;
+	        if (marks < EXTERNAL_PASS_MARKS) {
+	            SemesterSubject subject = exam.getExam().getSemesterSubject();
+
+	            GetSupplyExamDetailsByStudentIdRes dto = new GetSupplyExamDetailsByStudentIdRes();
+	            dto.setStudentId(student.getStudentId());
+	            dto.setStudentName(student.getStudentName());
+	            dto.setSubjectCode(subject.getSubjectCode());
+	            dto.setSubjectTitle(subject.getSubject().getSubjectTitle());
+	            dto.setSubjectShortForm(subject.getSubject().getSubjectShortForm());
+	            dto.setExamCode(exam.getExamCode());
+	            dto.setMarksObtained(marks);
+	            dto.setPassMarks(EXTERNAL_PASS_MARKS);
+
+	            supplyExams.add(dto);
+	        }
+	    }
+
+	    log.info("Found {} supply subjects for studentId: {}", supplyExams.size(), studentId);
+	    return supplyExams;
+	}
+
+
 
 
 
 
 
 }
+	
+	
+

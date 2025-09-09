@@ -28,6 +28,7 @@ public enum SuccessMessageEnum {
 	STUDENTS_BULK_CREATED(" %s students created successfully"),
 	STUDENTS_BULK_UPDATED(" %s students updated successfully"),
 	STUDENTS_BULK_DELETED(" %s students deleted successfully"),
+	SUPPLY_EXAM_DETAILS_FETCHED("Supply exam details fetched successfully for StudentId: %s "),
 
 	// Department
 	DEPARTMENT_CREATED("Department '%s' created successfully"),
@@ -55,6 +56,7 @@ public enum SuccessMessageEnum {
 	FACULTY_ADDED_TO_SEMESTER("Faculties added to semester successfully"),
 	STUDENTS_ADDED_TO_SEMESTER("Students added to semester successfully"),
 	SUBJECTS_ADDED_TO_SEMESTER("Subjects added to semester successfully"),
+	SEMESTER_DATES_FETCHED("Semester '%s' Start&End dates fetched successfully"),
 
 	// Subject
 	SUBJECT_CREATED("Subject created successfully"),
@@ -105,9 +107,14 @@ public enum SuccessMessageEnum {
 	STUDENT_ALL_SEMESTER_EXAMS_FETCHED("All semester exam details for student '%s' fetched successfully"),
 	STUDENT_ALL_SEMESTER_INTERNAL_EXAMS_FETCHED("All semester internal exam details for student '%s' fetched successfully"),
 	INTERNAL_EXAM_QUALIFIED_STUDENTS_FETCHED("Qualified students for internal exam of subject '%s' fetched successfully"),
+	INTERNAL_DISQUALIFIED_STUDENTS_FETCHED("Disqualified students for internal exam of subject '%s' fetched successfully"),
 	SEE_FAILED_STUDENTS_FETCHED("Failed students for exam '%s' fetched successfully"),
 	STUDENT_OVERALL_MARKS_FETCHED("Overall marks for student '%s' fetched successfully"),
-	
+	LOW_INTERNAL_MARKS_STUDENTS_FETCHED("Low internal marks students fetched successfully for facultyId: %s"),
+	INTERNAL_MARKS_FETCHED("Internal marks fetched successfully"),
+	LOW_EXTERNAL_MARKS_FETCHED("External internal marks students fetched successfully for facultyId: %s"),
+	SUPPLY_STUDENTS_FETCHED_BY_FACULTY("Students with supply subjects fetched successfullyfor facultyId: %s"),
+
 	// SemesterSubject
 	FACULTY_SEMESTER_SUBJECTS_FETCHED("Active semester subjects for faculty '%s' fetched successfully"),
 	SEMESTER_SUBJECT_STUDENTS_FETCHED("Students for semester subject fetched successfully"),

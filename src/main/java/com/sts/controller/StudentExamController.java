@@ -14,9 +14,14 @@ import com.sts.constants.Endpoints;
 import com.sts.constants.SuccessMessageEnum;
 import com.sts.dto.exam.studentexam.AddStudentsExamDataReq;
 import com.sts.dto.exam.studentexam.AddStudentsExamDataRes;
+import com.sts.dto.exam.studentexam.GetInternalMarksByStudentIdAndSemesterCodeRes;
+import com.sts.dto.exam.studentexam.GetLowExternalMarksStudentsByFacultyIdRes;
+import com.sts.dto.exam.studentexam.GetLowInternalMarksStudentsByFacultyIdRes;
 import com.sts.dto.exam.studentexam.GetStudentAllSemesterExamDetailsRes;
 import com.sts.dto.exam.studentexam.GetStudentAllSemesterInternalExamDetailsRes;
 import com.sts.dto.exam.studentexam.GetStudentCompleteResultRes;
+import com.sts.dto.exam.studentexam.GetStudentsWithSupplyByFacultyIdRes;
+import com.sts.dto.exam.studentexam.GetSupplyExamDetailsByStudentIdRes;
 import com.sts.service.interfaces.ExamService;
 import com.sts.service.interfaces.StudentExamService;
 import com.sts.utils.ResponseBuilder;
@@ -88,6 +93,23 @@ public class StudentExamController {
         return ResponseBuilder.ok(students,
                 SuccessMessageEnum.INTERNAL_EXAM_QUALIFIED_STUDENTS_FETCHED, subjectCode);
     }
+    
+    @GetMapping("/getInternalExamDisQualifiedStudentsBySubject/{subjectCode}")
+    public ResponseEntity<?> getInternalExamDisQualifiedStudentsBySubject(
+            @PathVariable("subjectCode") String subjectCode) {
+
+        log.info("Fetching internal exam disqualified students for subjectCode: {}", subjectCode);
+
+        List<String> disqualifiedStudents =
+                studentExamService.getInternalExamDisQualifiedStudentsBySubject(subjectCode);
+
+        return ResponseBuilder.ok(
+                disqualifiedStudents,
+                SuccessMessageEnum.INTERNAL_DISQUALIFIED_STUDENTS_FETCHED,
+                subjectCode
+        );
+    }
+
 
     @GetMapping("/getSEEFailedStudentsByExam/{examCode}")
     public ResponseEntity<?> getSEEFailedStudentsByExam(@PathVariable("examCode") String examCode) {
@@ -106,4 +128,56 @@ public class StudentExamController {
         return ResponseBuilder.ok(response,
                 SuccessMessageEnum.STUDENT_OVERALL_MARKS_FETCHED, studentId);
     }
+    
+    @GetMapping("/getLowInternalMarksStudentsByFacultyId/{facultyId}")
+    public ResponseEntity<?> getLowInternalMarksStudentsByFacultyId(@PathVariable("facultyId") String facultyId) {
+        log.info("Fetching low internal marks students for facultyId: {}", facultyId);
+
+        List<GetLowInternalMarksStudentsByFacultyIdRes> response =
+                studentExamService.getLowInternalMarksStudentsByFacultyId(facultyId);
+
+        return ResponseBuilder.ok(response,
+                SuccessMessageEnum.LOW_INTERNAL_MARKS_STUDENTS_FETCHED, facultyId);
+    }
+    
+    @GetMapping("/getInternalMarksByStudentIdAndSemesterCode/{studentId}/{semesterCode}")
+    public ResponseEntity<?> getInternalMarksByStudentIdAndSemesterCode(
+            @PathVariable("studentId") String studentId,
+            @PathVariable("semesterCode") String semesterCode) {
+
+        log.info("Fetching internal marks for studentId: {}, semesterCode: {}", studentId, semesterCode);
+
+        List<GetInternalMarksByStudentIdAndSemesterCodeRes> response =
+                studentExamService.getInternalMarksByStudentIdAndSemesterCode(studentId, semesterCode);
+
+        return ResponseBuilder.ok(response,
+                SuccessMessageEnum.INTERNAL_MARKS_FETCHED, studentId, semesterCode);
+    }
+    
+    @GetMapping("/getLowExternalMarksStudentsByFacultyId/{facultyId}")
+    public ResponseEntity<?> getLowExternalMarksStudentsByFacultyId(@PathVariable("facultyId") String facultyId) {
+        log.info("Fetching students with low external marks for facultyId: {}", facultyId);
+        List<GetLowExternalMarksStudentsByFacultyIdRes> response = studentExamService.getLowExternalMarksStudentsByFacultyId(facultyId);
+        return ResponseBuilder.ok(response,
+                SuccessMessageEnum.LOW_EXTERNAL_MARKS_FETCHED, facultyId);
+    }
+    
+    @GetMapping("/getStudentsWithSupplyByFacultyId/{facultyId}")
+    public ResponseEntity<?> getStudentsWithSupplyByFacultyId(@PathVariable("facultyId") String facultyId) {
+        log.info("Fetching students with supply (failed external subjects) for facultyId: {}", facultyId);
+        List<GetStudentsWithSupplyByFacultyIdRes> response = studentExamService.getStudentsWithSupplyByFacultyId(facultyId);
+        return ResponseBuilder.ok(response,
+                SuccessMessageEnum.SUPPLY_STUDENTS_FETCHED_BY_FACULTY, facultyId);
+    }
+    
+    @GetMapping("/getSupplyExamDetailsByStudentId/{studentId}")
+    public ResponseEntity<?> getSupplyExamDetailsByStudentId(@PathVariable("studentId") String studentId) {
+        List<GetSupplyExamDetailsByStudentIdRes> response = studentExamService.getSupplyExamDetailsByStudentId(studentId);
+        return ResponseBuilder.ok(response, SuccessMessageEnum.SUPPLY_EXAM_DETAILS_FETCHED, studentId);
+    }
+
+
+
+
+
 }

@@ -20,6 +20,7 @@ import com.sts.dto.attendance.AttendanceUpdateRequest;
 import com.sts.dto.attendance.GetActiveSemesterAttendanceByStudentIdAndSemesterCodeRes;
 import com.sts.dto.attendance.GetActiveSemesterAttendanceByStudentIdRes;
 import com.sts.dto.attendance.GetAttendanceByStudentIdAndSubjectCodeReq;
+import com.sts.dto.attendance.GetLowAttendanceStudentsByFacultyIdRes;
 import com.sts.dto.attendance.GetStudentAllSemesterAttendanceRes;
 import com.sts.dto.attendance.GetStudentSemesterAttendanceRes;
 import com.sts.service.interfaces.AttendanceService;
@@ -142,6 +143,25 @@ public class AttendanceController {
 //	            String.format("Low attendance students fetched for active semester below")
 //	    );
 //	}
+	
+	@GetMapping("/students/low-attendance/faculty/{facultyId}")
+	public ResponseEntity<?> getLowAttendanceStudents(
+	        @PathVariable("facultyId") String facultyId) {
 
+	    List<GetLowAttendanceStudentsByFacultyIdRes> lowAttendanceStudents =
+	            attendanceService.getLowAttendanceStudentsByFacultyId(facultyId);
+
+	    if (lowAttendanceStudents.isEmpty()) {
+	        // No content found, return 204 No Content directly
+	        return ResponseEntity.noContent().build();
+	    }
+
+	    // Return successful response with data wrapped by ResponseBuilder
+	    return ResponseBuilder.ok(
+	            lowAttendanceStudents,
+	            SuccessMessageEnum.ATTENDANCE_FETCHED,
+	            String.format("Low attendance students fetched for faculty %s", facultyId)
+	    );
+	}
 
 }

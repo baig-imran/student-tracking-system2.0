@@ -24,8 +24,10 @@ import com.sts.dto.attendance.AttendanceUpdateRequest;
 import com.sts.dto.attendance.GetActiveSemesterAttendanceByStudentIdAndSemesterCodeRes;
 import com.sts.dto.attendance.GetActiveSemesterAttendanceByStudentIdRes;
 import com.sts.dto.attendance.GetAttendanceByStudentIdAndSubjectCodeReq;
+import com.sts.dto.attendance.GetLowAttendanceStudentsByFacultyIdRes;
 import com.sts.dto.attendance.GetStudentAllSemesterAttendanceRes;
 import com.sts.dto.attendance.GetStudentSemesterAttendanceRes;
+import com.sts.dto.attendance.StudentAttendanceSummary;
 import com.sts.dto.attendance.SubjectAttendance;
 import com.sts.entity.Attendance;
 import com.sts.entity.Department;
@@ -270,55 +272,67 @@ public class AttendanceServiceImpl implements AttendanceService {
 
 	@Override
 	public String bulkCreateAttendances(List<AddAttendanceRequest> requestList) {
-		log.info("Received a request to save attendance batches, total batches: {}", requestList.size());
+	    log.info("Received a request to save attendance batches, total batches: {}", requestList.size());
 
-		List<Attendance> attendanceList = new ArrayList<>();
+	    List<Attendance> attendanceList = new ArrayList<>();
+	    
+	    // Get today's date
+	    LocalDate today = LocalDate.now();
 
-		for (AddAttendanceRequest request : requestList) {
-			log.info("Processing bulk attendance for subject: {} on date: {} period: {}",
-					request.getSubjectCode(), request.getAttendanceDate(), request.getPeriod());
+	    for (AddAttendanceRequest request : requestList) {
+	        log.info("Processing bulk attendance for subject: {} on date: {} period: {}",
+	                request.getSubjectCode(), request.getAttendanceDate(), request.getPeriod());
 
-			for (AddAttendanceRequest.StudentStatus studentStatus : request.getAttendanceData()) {
-				log.info("Processing student ID: {}", studentStatus.getStudentId());
+	        // Validate the attendance date
+	        LocalDate attendanceDate = LocalDate.parse(request.getAttendanceDate());
+	        if (attendanceDate.isAfter(today)) {
+	            // If the attendance date is beyond today, throw an exception
+	            throw new ResourceNotFoundException(
+	                "Attendance date cannot be in the future. Provided date: " + attendanceDate);
+	        }
 
-				// Create and populate Attendance entity
-				Attendance newAttendance = new Attendance();
-				newAttendance.setAttendanceDate(LocalDate.parse(request.getAttendanceDate()));
-				newAttendance.setPeriod(request.getPeriod());
-				newAttendance.setIsPresent(studentStatus.getIsPresent());
+	        for (AddAttendanceRequest.StudentStatus studentStatus : request.getAttendanceData()) {
+	            log.info("Processing student ID: {}", studentStatus.getStudentId());
 
-				// Fetch student-subject relationship
-				StudentSubject studentSubject = studentSubjectRepository
-						.getBySubjectCodeAndStudentId(request.getSubjectCode(), studentStatus.getStudentId())
-						.orElseThrow(() -> new ResourceNotFoundException(
-								ErrorMessageEnum.STUDENT_SUBJECT_MISSMATCH
-								.getMessage(studentStatus.getStudentId(), request.getSubjectCode())));
+	            // Create and populate Attendance entity
+	            Attendance newAttendance = new Attendance();
+	            newAttendance.setAttendanceDate(attendanceDate);  // Use validated date
+	            newAttendance.setPeriod(request.getPeriod());
+	            newAttendance.setIsPresent(studentStatus.getIsPresent());
 
-				Student student = studentSubject.getStudent();
-				newAttendance.setStudent(student);
+	            // Fetch student-subject relationship
+	            StudentSubject studentSubject = studentSubjectRepository
+	                    .getBySubjectCodeAndStudentId(request.getSubjectCode(), studentStatus.getStudentId())
+	                    .orElseThrow(() -> new ResourceNotFoundException(
+	                            ErrorMessageEnum.STUDENT_SUBJECT_MISSMATCH
+	                                    .getMessage(studentStatus.getStudentId(), request.getSubjectCode())));
 
-				// Fetch semester-subject and related entities
-				SemesterSubject semesterSubject = semesterSubjectRepository.findById(request.getSubjectCode())
-						.orElseThrow(() -> new ResourceNotFoundException(
-								ErrorMessageEnum.SUBJECT_ID_NOT_FOUND.getMessage(request.getSubjectCode())));
+	            Student student = studentSubject.getStudent();
+	            newAttendance.setStudent(student);
 
-				Semester semester = semesterSubject.getSemester();
-				Department department = semester.getDepartment();
+	            // Fetch semester-subject and related entities
+	            SemesterSubject semesterSubject = semesterSubjectRepository.findById(request.getSubjectCode())
+	                    .orElseThrow(() -> new ResourceNotFoundException(
+	                            ErrorMessageEnum.SUBJECT_ID_NOT_FOUND.getMessage(request.getSubjectCode())));
 
-				newAttendance.setSemester(semester);
-				newAttendance.setDepartment(department);
-				newAttendance.setSemesterSubject(semesterSubject);
+	            Semester semester = semesterSubject.getSemester();
+	            Department department = semester.getDepartment();
 
-				attendanceList.add(newAttendance);
-			}
-		}
+	            newAttendance.setSemester(semester);
+	            newAttendance.setDepartment(department);
+	            newAttendance.setSemesterSubject(semesterSubject);
 
-		// Save all attendance entries
-		List<Attendance> saved = attendanceRepository.saveAll(attendanceList);
-		log.info("Successfully saved {} attendance records", saved.size());
+	            attendanceList.add(newAttendance);
+	        }
+	    }
 
-		return "Successfully saved " + saved.size() + " attendance records";
+	    // Save all attendance entries
+	    List<Attendance> saved = attendanceRepository.saveAll(attendanceList);
+	    log.info("Successfully saved {} attendance records", saved.size());
+
+	    return "Successfully saved " + saved.size() + " attendance records";
 	}
+
 
 
 
@@ -641,6 +655,54 @@ public class AttendanceServiceImpl implements AttendanceService {
 	}
 	
 	
+	
+	@Override
+	public List<GetLowAttendanceStudentsByFacultyIdRes> getLowAttendanceStudentsByFacultyId(String facultyId) {
+	    log.info("Fetching students with low attendance for faculty ID: {}", facultyId);
+	    double attendanceThreshold = 90.0;
+	    // Step 1: Fetch all students mentored by this faculty
+	    List<Student> students = studentRepository.findAllByFaculty_FacultyId(facultyId);
+
+	    if (students.isEmpty()) {
+	        log.info("No students found for faculty ID: {}", facultyId);
+	        throw new ResourceNotFoundException(
+	            ErrorMessageEnum.FACULTY_ID_NOT_FOUND.getMessage(facultyId)
+	        );
+	    }
+
+	    // Step 2: Extract student IDs
+	    List<String> studentIds = students.stream()
+	                                      .map(Student::getStudentId)
+	                                      .collect(Collectors.toList());
+
+	    LocalDate today = LocalDate.now();
+
+	    // Step 3: Query attendance repository directly for low attendance students in bulk
+	    List<StudentAttendanceSummary> summaries = attendanceRepository.findStudentsWithLowAttendanceByActiveSemester(
+	            studentIds, attendanceThreshold, today);
+
+	        // Fallback to latest semester if no active semester records found
+	        if (summaries.isEmpty()) {
+	            log.info("No active semester attendance records found. Falling back to latest semester.");
+	            summaries = attendanceRepository.findStudentsWithLowAttendanceInLatestSemester(
+	                studentIds, attendanceThreshold
+	            );
+	        }
+	    // Step 4: Map query results to your DTO
+	    List<GetLowAttendanceStudentsByFacultyIdRes> lowAttendanceList = summaries.stream()
+	        .map(summary -> {
+	            GetLowAttendanceStudentsByFacultyIdRes dto = new GetLowAttendanceStudentsByFacultyIdRes();
+	            dto.setStudentId(summary.getStudentId());
+	            dto.setSemesterCode(summary.getSemesterCode());
+	            dto.setTotalDaysPresent(summary.getTotalDaysPresent());
+	            dto.setTotalWorkingDays(summary.getTotalWorkingDays());
+	            dto.setAttendancePercentage(summary.getAttendancePercentage());
+	            return dto;
+	        })
+	        .collect(Collectors.toList());
+
+	    return lowAttendanceList;
+	}
 
 	
 	

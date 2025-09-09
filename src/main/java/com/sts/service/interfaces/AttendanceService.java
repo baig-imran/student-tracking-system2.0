@@ -9,6 +9,7 @@ import com.sts.dto.attendance.AttendanceUpdateRequest;
 import com.sts.dto.attendance.GetActiveSemesterAttendanceByStudentIdAndSemesterCodeRes;
 import com.sts.dto.attendance.GetActiveSemesterAttendanceByStudentIdRes;
 import com.sts.dto.attendance.GetAttendanceByStudentIdAndSubjectCodeReq;
+import com.sts.dto.attendance.GetLowAttendanceStudentsByFacultyIdRes;
 import com.sts.dto.attendance.GetStudentAllSemesterAttendanceRes;
 import com.sts.dto.attendance.GetStudentSemesterAttendanceRes;
 
@@ -37,6 +38,8 @@ public interface AttendanceService {
 			String semesterCode);
 
 	GetActiveSemesterAttendanceByStudentIdRes getActiveSemesterAttendanceByStudentId(String studentId);
+
+	List<GetLowAttendanceStudentsByFacultyIdRes> getLowAttendanceStudentsByFacultyId(String facultyId);
 	
 	
 	
