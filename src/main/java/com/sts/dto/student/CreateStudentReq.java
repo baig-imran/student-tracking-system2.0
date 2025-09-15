@@ -1,11 +1,9 @@
 package com.sts.dto.student;
 
-import java.util.List;
-
 import lombok.Data;
 
 @Data
-public class StudentGetRequest {
+public class CreateStudentReq {
 	
 	 	private String studentId;
 	    private String studentName;

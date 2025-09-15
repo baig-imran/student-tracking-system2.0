@@ -3,7 +3,7 @@ package com.sts.dto.student;
 import lombok.Data;
 
 @Data
-public class StudentUpdateRequest {
+public class UpdateStudentReq {
 
     private String studentId;
     private String studentName;

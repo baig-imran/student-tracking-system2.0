@@ -7,12 +7,12 @@
 //import org.springframework.context.ApplicationContext;
 //import org.springframework.stereotype.Service;
 //
-//import com.sts.constants.ErrorMessageEnum;
+//import com.sts.constants.ErrorMessages;
 //import com.sts.constants.ValidatorRulesEnum;
 //import com.sts.dto.semester.SemBasicDetailsRes;
 //import com.sts.dto.semester.SemesterDetails;
 //import com.sts.dto.semester.SemesterResponse;
-//import com.sts.dto.student.StudentCreateRequest;
+//import com.sts.dto.student.CreateStudentReq;
 //import com.sts.dto.student.StudentResponse;
 //import com.sts.entity.Department;
 //import com.sts.entity.Faculty;
@@ -54,14 +54,14 @@
 //
 //
 //	
-//	public StudentResponse saveStudent(StudentCreateRequest studentRequest){
+//	public StudentResponse saveStudent(CreateStudentReq studentRequest){
 //
 //	    log.info("Starting to save student with request: {}", studentRequest);
 //
 //	    // Validate the request
 //	    if (validatorRuleService.isRuleActive(ValidatorRulesEnum.STUDENT_REQUEST_VALIDATOR.getRuleName())) {
 //	        log.info("Starting {}", ValidatorRulesEnum.STUDENT_REQUEST_VALIDATOR.getRuleName());
-//	        Validator<StudentCreateRequest> validator = applicationContext.getBean(StudentRequestValidator.class);
+//	        Validator<CreateStudentReq> validator = applicationContext.getBean(StudentRequestValidator.class);
 //	        validator.validate(studentRequest);
 //	    }
 //
@@ -73,7 +73,7 @@
 //	        Department department = departmentRepository.findById(studentRequest.getDepartmentId())
 //	                .orElseThrow(() -> {
 //	                    log.error("Department not found for ID: {}", studentRequest.getDepartmentId());
-//	                    return new ResourceNotFoundException(ErrorMessageEnum.DEPARTMENT_ID_NOT_FOUND.getMessage(studentRequest.getDepartmentId())   );
+//	                    return new ResourceNotFoundException(ErrorMessages.DEPARTMENT_ID_NOT_FOUND.getMessage(studentRequest.getDepartmentId())   );
 //	                });
 //
 //	        // Fetch faculty dynamically
@@ -124,10 +124,10 @@
 //	 public SemesterResponse saveSemester(SemBasicDetailsRes semesterBasicDataRequest) {
 //		
 //		if(semesterRepository.existsById(semesterBasicDataRequest.getSemesterCode())) {
-//			throw  new ResourceNotFoundException(ErrorMessageEnum.DUPLICATE_SEMESTER_CODE.getMessage(semesterBasicDataRequest.getSemesterCode()));
+//			throw  new ResourceNotFoundException(ErrorMessages.DUPLICATE_SEMESTER_CODE.getMessage(semesterBasicDataRequest.getSemesterCode()));
 //}
 //		Department department = departmentRepository.findById(semesterBasicDataRequest.getDepartmentId())
-//				.orElseThrow(() -> new ResourceNotFoundException(ErrorMessageEnum.DEPARTMENT_ID_NOT_FOUND.getMessage(semesterBasicDataRequest.getDepartmentId()))); 
+//				.orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.DEPARTMENT_ID_NOT_FOUND.getMessage(semesterBasicDataRequest.getDepartmentId()))); 
 //		
 //        // Create a new Semester entity
 //        Semester newSemester = new Semester();
@@ -169,7 +169,7 @@
 //		List<String> students =new  ArrayList<>();
 //		List<String> faculties =new  ArrayList<>();
 //		List<String> semesterSubjects =new  ArrayList<>();
-//		Semester semester = semesterRepository.findById(semesterCode).orElseThrow( () -> new  ResourceNotFoundException(ErrorMessageEnum.DUPLICATE_SEMESTER_CODE.getMessage(semesterCode)));
+//		Semester semester = semesterRepository.findById(semesterCode).orElseThrow( () -> new  ResourceNotFoundException(ErrorMessages.DUPLICATE_SEMESTER_CODE.getMessage(semesterCode)));
 //		SemesterDetails semesterResponse = modelMapper.map(semester, SemesterDetails.class);
 //		
 //		//semesterRepository.f
@@ -200,7 +200,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
-import com.sts.constants.ErrorMessageEnum;
+import com.sts.constants.ErrorMessages;
 import com.sts.dto.semester.AddFacultiesToSemReq;
 import com.sts.dto.semester.AddFacultiesToSemRes;
 import com.sts.dto.semester.AddStudentsToSemReq;
@@ -277,7 +277,7 @@ public class SemesterServiceImpl implements SemesterService {
 		
 		log.info("Fetching semester with code: {}", semesterCode);
 
-		Semester semester = semesterRepository.findById(semesterCode).orElseThrow(() -> new ResourceNotFoundException(ErrorMessageEnum.SEMESTER_CODE_NOT_FOUND.getMessage(semesterCode)));
+		Semester semester = semesterRepository.findById(semesterCode).orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.SEMESTER_CODE_NOT_FOUND.getMessage(semesterCode)));
 		log.info("Semester Details: {}", semester.toString());
 		
 		SemesterFaculty semesterFaculty;
@@ -310,7 +310,7 @@ public class SemesterServiceImpl implements SemesterService {
 	                Department department = departmentMap.get(req.getDepartmentId());
 	                if (department == null) {
 	                    throw new ResourceNotFoundException(
-	                        ErrorMessageEnum.DEPARTMENT_ID_NOT_FOUND.getMessage(req.getDepartmentId())
+	                        ErrorMessages.DEPARTMENT_ID_NOT_FOUND.getMessage(req.getDepartmentId())
 	                    );
 	                }
 
@@ -342,7 +342,7 @@ public class SemesterServiceImpl implements SemesterService {
 
 	    Semester semester = semesterRepository.findById(semesterCode)
 	            .orElseThrow(() -> new ResourceNotFoundException(
-	                    ErrorMessageEnum.SEMESTER_CODE_NOT_FOUND.getMessage(semesterCode)));
+	                    ErrorMessages.SEMESTER_CODE_NOT_FOUND.getMessage(semesterCode)));
 
 	    SemesterOverallDetailsRes res = new SemesterOverallDetailsRes();
 	    res.setSemesterCode(semester.getSemesterCode());
@@ -430,7 +430,7 @@ public class SemesterServiceImpl implements SemesterService {
 	public SemesterDetails getSemester(String semesterCode) {
 		log.info("Fetching semester with code: {}", semesterCode);
 
-		Semester semester = semesterRepository.findById(semesterCode).orElseThrow(() -> new ResourceNotFoundException(ErrorMessageEnum.SEMESTER_CODE_NOT_FOUND.getMessage(semesterCode)));
+		Semester semester = semesterRepository.findById(semesterCode).orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.SEMESTER_CODE_NOT_FOUND.getMessage(semesterCode)));
 		log.info("Semester Details: {}", semester.toString());
 
 		SemesterDetails semesterDetails = modelMapper.map(semester, SemesterDetails.class);
@@ -459,7 +459,7 @@ public class SemesterServiceImpl implements SemesterService {
 		
 		log.info("Fetching department with ID: {}", semesterRequest.getDepartmentId());
 		Department department = departmentRepository.findById(semesterRequest.getDepartmentId())
-				.orElseThrow(() -> new ResourceNotFoundException(ErrorMessageEnum.DEPARTMENT_ID_NOT_FOUND.getMessage(semesterRequest.getDepartmentId()))
+				.orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.DEPARTMENT_ID_NOT_FOUND.getMessage(semesterRequest.getDepartmentId()))
 						);
 		Semester newSemester = modelMapper.map(semesterRequest, Semester.class);
 		
@@ -512,13 +512,13 @@ public class SemesterServiceImpl implements SemesterService {
 	        Semester semester = semesterMap.get(semesterCode);
 	        if (semester == null) {
 	            log.error("Semester not found for code: {}", semesterCode);
-	            throw new ResourceNotFoundException(ErrorMessageEnum.SEMESTER_CODE_NOT_FOUND.getMessage(semesterCode));
+	            throw new ResourceNotFoundException(ErrorMessages.SEMESTER_CODE_NOT_FOUND.getMessage(semesterCode));
 	        }
 
 	        Faculty faculty = facultyMap.get(facultyId);
 	        if (faculty == null) {
 	            log.error("Faculty not found for ID: {}", facultyId);
-	            throw new ResourceNotFoundException(ErrorMessageEnum.FACULTY_ID_NOT_FOUND.getMessage(facultyId));
+	            throw new ResourceNotFoundException(ErrorMessages.FACULTY_ID_NOT_FOUND.getMessage(facultyId));
 	        }
 
 	        boolean alreadyMapped = semester.getSemesterFaculties().stream()
@@ -585,14 +585,14 @@ public class SemesterServiceImpl implements SemesterService {
 	    for (String code : semesterCodes) {
 	        if (!semesterMap.containsKey(code)) {
 	            log.error("Semester not found with code: {}", code);
-	            throw new ResourceNotFoundException(ErrorMessageEnum.SEMESTER_CODE_NOT_FOUND.getMessage(code));
+	            throw new ResourceNotFoundException(ErrorMessages.SEMESTER_CODE_NOT_FOUND.getMessage(code));
 	        }
 	    }
 
 	    for (String id : studentIds) {
 	        if (!studentMap.containsKey(id)) {
 	            log.error("Student not found with ID: {}", id);
-	            throw new ResourceNotFoundException(ErrorMessageEnum.STUDENT_ID_NOT_FOUND.getMessage(id));
+	            throw new ResourceNotFoundException(ErrorMessages.STUDENT_ID_NOT_FOUND.getMessage(id));
 	        }
 	    }
 
@@ -675,21 +675,21 @@ public class SemesterServiceImpl implements SemesterService {
 	    semesterCodes.forEach(code -> {
 	        if (!semesterMap.containsKey(code)) {
 	            log.error("Semester not found: {}", code);
-	            throw new ResourceNotFoundException(ErrorMessageEnum.SEMESTER_CODE_NOT_FOUND.getMessage(code));
+	            throw new ResourceNotFoundException(ErrorMessages.SEMESTER_CODE_NOT_FOUND.getMessage(code));
 	        }
 	    });
 
 	    facultyIds.forEach(id -> {
 	        if (!facultyMap.containsKey(id)) {
 	            log.error("Faculty not found: {}", id);
-	            throw new ResourceNotFoundException(ErrorMessageEnum.FACULTY_ID_NOT_FOUND.getMessage(id));
+	            throw new ResourceNotFoundException(ErrorMessages.FACULTY_ID_NOT_FOUND.getMessage(id));
 	        }
 	    });
 
 	    subjectIds.forEach(id -> {
 	        if (!subjectMap.containsKey(id)) {
 	            log.error("Subject not found: {}", id);
-	            throw new ResourceNotFoundException(ErrorMessageEnum.SUBJECT_ID_NOT_FOUND.getMessage(id));
+	            throw new ResourceNotFoundException(ErrorMessages.SUBJECT_ID_NOT_FOUND.getMessage(id));
 	        }
 	    });
 
@@ -767,7 +767,7 @@ public class SemesterServiceImpl implements SemesterService {
 	        SemesterSubject semesterSubject = semesterSubjectMap.get(subjectCode);
 	        if (semesterSubject == null) {
 	            log.error("Subject not found with code: {}", subjectCode);
-	            throw new ResourceNotFoundException(ErrorMessageEnum.SUBJECT_ID_NOT_FOUND.getMessage(subjectCode));
+	            throw new ResourceNotFoundException(ErrorMessages.SUBJECT_ID_NOT_FOUND.getMessage(subjectCode));
 	        }
 
 	        Student student = studentMap.get(studentId);

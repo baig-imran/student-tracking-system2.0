@@ -10,6 +10,11 @@ import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import com.sts.constants.EntityNames;
+import com.sts.constants.ErrorMessages;
+import com.sts.constants.ServiceLogDebugMessages;
+import com.sts.constants.ServiceLogInfoMessages;
+import com.sts.constants.SuccessMessages;
 import com.sts.dto.faculty.FacultyCreateRequest;
 import com.sts.dto.faculty.FacultyGetRequest;
 import com.sts.dto.faculty.FacultyResponse;
@@ -42,41 +47,65 @@ public class FacultyServiceImpl implements FacultyService {
 
     @Override
     public FacultyResponse getFacultyById(String facultyId) {
+        log.info(ServiceLogInfoMessages.FETCHING_ENTITY_WITH_ID.getMessage(EntityNames.FACULTY.getName(), facultyId));
+        
         Faculty faculty = facultyRepository.findById(facultyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Faculty with ID " + facultyId + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.FACULTY_ID_NOT_FOUND.getMessage(facultyId)));
+        
         FacultyResponse response = modelMapper.map(faculty, FacultyResponse.class);
         response.setDepartmentId(faculty.getDepartment().getDepartmentId());
+        
+        log.info(ServiceLogInfoMessages.ENTITY_FETCHED_WITH_ID.getMessage(EntityNames.FACULTY.getName(), facultyId));
         return response;
     }
     
     @Override
-	public List<FacultyResponse> getFacultyByCriteria(FacultyGetRequest facultyGetRequest) {
-		 
+	public List<FacultyResponse> getFacultyBySpecification(FacultyGetRequest facultyGetRequest) {
+    	log.info(ServiceLogInfoMessages.FETCHING_ENTITIES_BY_SPECIFICATION.getMessage(EntityNames.FACULTY.getName()));
+        log.debug(ServiceLogDebugMessages.REQUEST_OBJECT.getMessage(EntityNames.FACULTY.getName(), facultyGetRequest));
+    	
     	List<FacultyResponse> facultyList =new ArrayList<>();
     	Faculty faculty = facultyRepository.findById(facultyGetRequest.getFacultyId())
-                .orElseThrow(() -> new ResourceNotFoundException("Faculty with ID " + facultyGetRequest.getFacultyId() + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.FACULTY_ID_NOT_FOUND.getMessage(facultyGetRequest.getFacultyId())));
         FacultyResponse response = modelMapper.map(faculty, FacultyResponse.class);
+        response.setDepartmentId(faculty.getDepartment().getDepartmentId());
         
         facultyList.add(response);
+        
+        log.info(ServiceLogInfoMessages.ENTITIES_FETCHED_BY_SPECIFICATION.getMessage(facultyList.size(), EntityNames.FACULTY.getName()));
 		return facultyList;
 	}
 
     @Override
     public List<FacultyResponse> getAllFaculties() {
+        log.info(ServiceLogInfoMessages.FETCHING_ALL_ENTITIES.getMessage(EntityNames.FACULTIES.getName()));
+
         List<Faculty> facultyList = facultyRepository.findAll();
-        return facultyList.stream()
+        
+        if(facultyList.isEmpty()){
+            log.warn("No faculties found in the system.");
+            throw new ResourceNotFoundException(ErrorMessages.FACULTY_REQUIRED.getMessage());
+        }
+
+        List<FacultyResponse> responses = facultyList.stream()
                 .map(faculty -> {
                     FacultyResponse response = modelMapper.map(faculty, FacultyResponse.class);
                     response.setDepartmentId(faculty.getDepartment().getDepartmentId());
                     return response;
                 })
                 .collect(Collectors.toList());
+        
+        log.info(ServiceLogInfoMessages.ALL_ENTITIES_FETCHED.getMessage(responses.size(), EntityNames.FACULTIES.getName()));
+        return responses;
     }
 
     @Override
-    public FacultyResponse saveFaculty(FacultyCreateRequest request) {
+    public FacultyResponse createFaculty(FacultyCreateRequest request) {
+        log.info(ServiceLogInfoMessages.CREATING_ENTITY_WITH_ID.getMessage(EntityNames.FACULTY.getName(), request.getFacultyId()));
+        log.debug(ServiceLogDebugMessages.REQUEST_OBJECT.getMessage(EntityNames.FACULTY.getName(), request));
+
         Department department = departmentRepository.findById(request.getDepartmentId())
-                .orElseThrow(() -> new ResourceNotFoundException("Department with ID " + request.getDepartmentId() + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.DEPARTMENT_ID_NOT_FOUND.getMessage(request.getDepartmentId())));
 
         Faculty faculty = modelMapper.map(request, Faculty.class);
         faculty.setDepartment(department);
@@ -84,13 +113,16 @@ public class FacultyServiceImpl implements FacultyService {
         Faculty saved = facultyRepository.save(faculty);
         FacultyResponse response = modelMapper.map(saved, FacultyResponse.class);
         response.setDepartmentId(saved.getDepartment().getDepartmentId());
+        
+        log.info(ServiceLogInfoMessages.ENTITY_CREATED_WITH_ID.getMessage(EntityNames.FACULTY.getName(), response.getFacultyId()));
         return response;
     }
     
     @Override
     @Transactional
     public String addBulkFaculties(List<FacultyCreateRequest> requests) {
-        log.info("Starting bulk faculty creation. Total records: {}", requests.size());
+        log.info(ServiceLogInfoMessages.CREATING_BULK_ENTITIES_WITH_SIZE.getMessage(EntityNames.FACULTY.getName(), requests.size()));
+        log.debug(ServiceLogDebugMessages.BULK_REQUEST_OBJECT.getMessage(EntityNames.FACULTY.getName(), requests.size(), requests));
 
         // Step 1: Extract unique department IDs
         Set<String> departmentIds = requests.stream()
@@ -100,13 +132,14 @@ public class FacultyServiceImpl implements FacultyService {
         // Step 2: Fetch all relevant departments
         Map<String, Department> departmentMap = departmentRepository.findAllById(departmentIds).stream()
                 .collect(Collectors.toMap(Department::getDepartmentId, Function.identity()));
-
+        
         // Step 3: Map requests to Faculty entities
         List<Faculty> faculties = requests.stream()
                 .map(request -> {
                     Department department = departmentMap.get(request.getDepartmentId());
                     if (department == null) {
-                        throw new ResourceNotFoundException("Department with ID " + request.getDepartmentId() + " not found");
+                        log.error(ErrorMessages.DEPARTMENT_ID_NOT_FOUND.getMessage(request.getDepartmentId()));
+                        throw new ResourceNotFoundException(ErrorMessages.DEPARTMENT_ID_NOT_FOUND.getMessage(request.getDepartmentId()));
                     }
 
                     Faculty faculty = modelMapper.map(request, Faculty.class);
@@ -127,19 +160,20 @@ public class FacultyServiceImpl implements FacultyService {
                 })
                 .collect(Collectors.toList());
 
-        log.info("Successfully created {} faculty records.", responses.size());
-        return "Successfully created "+ responses.size()+" faculty records.";
+        log.info(ServiceLogInfoMessages.BULK_ENTITIES_CREATED.getMessage(responses.size(), EntityNames.FACULTY.getName()));
+        return SuccessMessages.BULK_ENTITIES_CREATED.getMessage(responses.size(), EntityNames.FACULTIES.getName());
     }
 
     
     @Override
     public List<FacultyResponse> saveMultipleFaculties(List<FacultyCreateRequest> facultyRequests) {
-        log.info("Starting to save multiple faculties, total records: {}", facultyRequests.size());
+        log.info(ServiceLogInfoMessages.CREATING_BULK_ENTITIES_WITH_SIZE.getMessage(EntityNames.FACULTY.getName(), facultyRequests.size()));
+        log.debug(ServiceLogDebugMessages.BULK_REQUEST_OBJECT.getMessage(EntityNames.FACULTY.getName(), facultyRequests.size(), facultyRequests));
 
         List<Faculty> faculties = facultyRequests.stream()
             .map(request -> {
                 Department department = departmentRepository.findById(request.getDepartmentId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Department with ID " + request.getDepartmentId() + " not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.DEPARTMENT_ID_NOT_FOUND.getMessage(request.getDepartmentId())));
 
                 Faculty faculty = modelMapper.map(request, Faculty.class);
                 faculty.setDepartment(department);
@@ -157,18 +191,21 @@ public class FacultyServiceImpl implements FacultyService {
             })
             .collect(Collectors.toList());
 
-        log.info("Successfully saved {} faculties.", responses.size());
+        log.info(ServiceLogInfoMessages.BULK_ENTITIES_CREATED.getMessage(responses.size(), EntityNames.FACULTY.getName()));
         return responses;
     }
 
 
     @Override
     public FacultyResponse updateFaculty(FacultyUpdateRequest request) {
+        log.info(ServiceLogInfoMessages.UPDATING_ENTITY_WITH_ID.getMessage(EntityNames.FACULTY.getName(), request.getFacultyId()));
+        log.debug(ServiceLogDebugMessages.REQUEST_OBJECT.getMessage(EntityNames.FACULTY.getName(), request));
+
         Faculty existingFaculty = facultyRepository.findById(request.getFacultyId())
-                .orElseThrow(() -> new ResourceNotFoundException("Faculty with ID " + request.getFacultyId() + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.FACULTY_ID_NOT_FOUND.getMessage(request.getFacultyId())));
 
         Department department = departmentRepository.findById(request.getDepartmentId())
-                .orElseThrow(() -> new ResourceNotFoundException("Department with ID " + request.getDepartmentId() + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.DEPARTMENT_ID_NOT_FOUND.getMessage(request.getDepartmentId())));
 
         existingFaculty.setFacultyName(request.getFacultyName());
         existingFaculty.setFacultyMobileNumber(request.getFacultyMobileNumber());
@@ -177,18 +214,23 @@ public class FacultyServiceImpl implements FacultyService {
         Faculty updated = facultyRepository.save(existingFaculty);
         FacultyResponse response = modelMapper.map(updated, FacultyResponse.class);
         response.setDepartmentId(updated.getDepartment().getDepartmentId());
+
+        log.info(ServiceLogInfoMessages.ENTITY_UPDATED_WITH_ID.getMessage(EntityNames.FACULTY.getName(), response.getFacultyId()));
         return response;
     }
 
     @Override
     public String deleteFacultyById(String facultyId) {
+        log.info(ServiceLogInfoMessages.DELETING_ENTITY_WITH_ID.getMessage(EntityNames.FACULTY.getName(), facultyId));
+        
         if (!facultyRepository.existsById(facultyId)) {
-            throw new ResourceNotFoundException("Faculty with ID " + facultyId + " not found");
+            log.error(ErrorMessages.FACULTY_ID_NOT_FOUND.getMessage(facultyId));
+            throw new ResourceNotFoundException(ErrorMessages.FACULTY_ID_NOT_FOUND.getMessage(facultyId));
         }
 
         facultyRepository.deleteById(facultyId);
-        return "Faculty with ID " + facultyId + " deleted successfully";
+        
+        log.info(ServiceLogInfoMessages.ENTITY_DELETED_WITH_ID.getMessage(EntityNames.FACULTY.getName(), facultyId));
+        return SuccessMessages.ENTITY_DELETED_WITH_ID.getMessage(EntityNames.FACULTY.getName(), facultyId);
     }
-
-	
 }

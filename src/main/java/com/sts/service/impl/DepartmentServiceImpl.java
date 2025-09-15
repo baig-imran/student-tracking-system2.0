@@ -6,10 +6,17 @@ import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import com.sts.constants.ErrorMessageEnum;
-import com.sts.dto.department.DepartmentCreateRequest;
+import com.sts.constants.EntityNames;
+import com.sts.constants.ErrorMessages;
+import com.sts.constants.ServiceLogDebugMessages;
+import com.sts.constants.ServiceLogInfoMessages;
+import com.sts.constants.SuccessMessages;
+import com.sts.dto.department.CreateDepartmentReq;
+import com.sts.dto.department.CreateDepartmentRes;
 import com.sts.dto.department.DepartmentResponse;
-import com.sts.dto.department.DepartmentUpdateRequest;
+import com.sts.dto.department.GetDepartmentByIdRes;
+import com.sts.dto.department.UpdateDepartmentReq;
+import com.sts.dto.department.UpdateDepartmentRes;
 import com.sts.entity.Department;
 import com.sts.exceptions.ResourceNotFoundException;
 import com.sts.repository.DepartmentRepository;
@@ -20,128 +27,142 @@ import com.sts.service.interfaces.DepartmentService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
-
 @Service
 @Slf4j
 public class DepartmentServiceImpl implements DepartmentService {
 
-    private final DepartmentRepository departmentRepository;
-    private final StudentRepository studentRepository;
-    private final FacultyRepository facultyRepository;
-    private final ModelMapper modelMapper;
+	private final DepartmentRepository departmentRepository;
+	private final StudentRepository studentRepository;
+	private final FacultyRepository facultyRepository;
+	private final ModelMapper modelMapper;
 
-    public DepartmentServiceImpl(DepartmentRepository departmentRepository,
-                                 StudentRepository studentRepository,
-                                 FacultyRepository facultyRepository,
-                                 ModelMapper modelMapper) {
-        this.departmentRepository = departmentRepository;
-        this.studentRepository = studentRepository;
-        this.facultyRepository = facultyRepository;
-        this.modelMapper = modelMapper;
-    }
+	// Constructor Injection (cleaner than field injection)
+	public DepartmentServiceImpl(DepartmentRepository departmentRepository,
+			StudentRepository studentRepository,
+			FacultyRepository facultyRepository,
+			ModelMapper modelMapper) {
+		this.departmentRepository = departmentRepository;
+		this.studentRepository = studentRepository;
+		this.facultyRepository = facultyRepository;
+		this.modelMapper = modelMapper;
+	}
 
-    @Override
-    public DepartmentResponse getDepartmentById(String departmentId) {
-        log.info("Fetching department with ID: {}", departmentId);
+	/**
+	 * Fetch a department by its ID.
+	 */
+	@Override
+	public GetDepartmentByIdRes getDepartmentById(String departmentId) {
+		log.info(ServiceLogInfoMessages.FETCHING_ENTITY_WITH_ID
+				.getMessage(EntityNames.DEPARTMENT.getName(), departmentId));
 
-        Department department = departmentRepository.findById(departmentId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        ErrorMessageEnum.DEPARTMENT_ID_NOT_FOUND.getMessage(departmentId)));
+		Department department = departmentRepository.findById(departmentId)
+				.orElseThrow(() -> new ResourceNotFoundException(
+						ErrorMessages.DEPARTMENT_ID_NOT_FOUND.getMessage(departmentId)));
 
-        DepartmentResponse response = mapToDepartmentResponse(department);
+		log.info(ServiceLogInfoMessages.ENTITY_FETCHED_WITH_ID
+				.getMessage(EntityNames.DEPARTMENT.getName(), departmentId));
 
-        log.info("Successfully fetched department with ID: {}", departmentId);
-        return response;
-    }
+		return modelMapper.map(department, GetDepartmentByIdRes.class);
+	}
 
-    @Override
-    public List<DepartmentResponse> getAllDepartments() {
-        log.info("Fetching all departments");
+	/**
+	 * Fetch all departments.
+	 */
+	@Override
+	public List<DepartmentResponse> getAllDepartments() {
+		log.info(ServiceLogInfoMessages.FETCHING_ALL_ENTITIES
+				.getMessage(EntityNames.DEPARTMENTS.getName()));
 
-        List<Department> departments = departmentRepository.findAll();
+		List<Department> departments = departmentRepository.findAll();
 
-        if (departments.isEmpty()) {
-            log.warn("No departments found in the system.");
-            throw new ResourceNotFoundException(ErrorMessageEnum.DEPARTMENT_REQUIRED.getMessage());
-        }
+		if (departments.isEmpty()) {
+			log.warn("No departments found in the system.");
+			throw new ResourceNotFoundException(ErrorMessages.DEPARTMENT_REQUIRED.getMessage());
+		}
 
-        List<DepartmentResponse> responses = departments.stream()
-                .map(this::mapToDepartmentResponse)
-                .collect(Collectors.toList());
+		List<DepartmentResponse> responses = departments.stream()
+				.map(dept -> modelMapper.map(dept, DepartmentResponse.class))
+				.collect(Collectors.toList());
 
-        log.info("Successfully fetched {} departments.", responses.size());
-        return responses;
-    }
+		log.info(ServiceLogInfoMessages.ALL_ENTITIES_FETCHED
+				.getMessage(responses.size(), EntityNames.DEPARTMENTS.getName()));
 
-    @Override
-    @Transactional
-    public DepartmentResponse saveDepartment(DepartmentCreateRequest request) {
-        log.info("Starting to save department with request: {}", request);
+		return responses;
+	}
 
-        Department newDepartment = modelMapper.map(request, Department.class);
+	/**
+	 * Create a new department.
+	 */
+	@Override
+	@Transactional
+	public CreateDepartmentRes createDepartment(CreateDepartmentReq req) {
+		log.info(ServiceLogInfoMessages.CREATING_ENTITY_WITH_ID.getMessage(EntityNames.DEPARTMENT.getName(), req.getDepartmentId()));
+		log.debug(ServiceLogDebugMessages.REQUEST_OBJECT.getMessage(EntityNames.DEPARTMENT.getName(),req));
+		Department savedDepartment = departmentRepository.save(modelMapper.map(req, Department.class));
+		CreateDepartmentRes response = modelMapper.map(savedDepartment, CreateDepartmentRes.class);
+		log.info(ServiceLogInfoMessages.ENTITY_CREATED_WITH_ID
+				.getMessage(EntityNames.DEPARTMENT.getName(), response.getDepartmentId()));
+		return response;
+	}
 
-        Department savedDepartment = departmentRepository.save(newDepartment);
+	/**
+	 * Create multiple departments in bulk.
+	 */
+	@Override
+	@Transactional
+	public String createDepartmentsInBulk(List<CreateDepartmentReq> req) {
+		log.info(ServiceLogInfoMessages.CREATING_BULK_ENTITIES_WITH_SIZE
+				.getMessage(EntityNames.DEPARTMENT.getName(), req.size()));
+		log.debug(ServiceLogDebugMessages.BULK_REQUEST_OBJECT.getMessage(EntityNames.DEPARTMENT.getName(),req.size(),req));
+		List<Department> departments = req.stream()
+				.map(dept -> modelMapper.map(dept, Department.class))
+				.collect(Collectors.toList());
 
-        DepartmentResponse response = mapToDepartmentResponse(savedDepartment);
+		departmentRepository.saveAll(departments);
 
-        log.info("Department saved successfully with ID: {}", savedDepartment.getDepartmentId());
-        return response;
-    }
+		log.info(ServiceLogInfoMessages.BULK_ENTITIES_CREATED
+				.getMessage(departments.size(), EntityNames.DEPARTMENT.getName()));
 
-    @Override
-    @Transactional
-    public String bulkCreateDepartments(List<DepartmentCreateRequest> requests) {
-        log.info("Starting to save multiple departments, total records: {}", requests.size());
+		return SuccessMessages.BULK_ENTITIES_CREATED
+				.getMessage(req.size(), EntityNames.DEPARTMENTS.getName());
+	}
 
-        List<Department> departments = requests.stream()
-                .map(req -> modelMapper.map(req, Department.class))
-                .collect(Collectors.toList());
+	/**
+	 * Update an existing department.
+	 */
+	@Override
+	@Transactional
+	public UpdateDepartmentRes updateDepartment(UpdateDepartmentReq req) {
+		log.info(ServiceLogInfoMessages.UPDATING_ENTITY_WITH_ID.getMessage(EntityNames.DEPARTMENT.getName(), req.getDepartmentId()));
+		log.debug(ServiceLogDebugMessages.REQUEST_OBJECT.getMessage(EntityNames.DEPARTMENT.getName(),req));
+		Department existingDepartment = departmentRepository.findById(req.getDepartmentId())
+				.orElseThrow(() -> new ResourceNotFoundException(
+						ErrorMessages.DEPARTMENT_ID_NOT_FOUND.getMessage(req.getDepartmentId())));
+		modelMapper.map(req, existingDepartment);
+		Department savedDepartment = departmentRepository.save(existingDepartment);
+		UpdateDepartmentRes response = modelMapper.map(savedDepartment, UpdateDepartmentRes.class);
+		log.info(ServiceLogInfoMessages.ENTITY_UPDATED_WITH_ID
+				.getMessage(EntityNames.DEPARTMENT.getName(), req.getDepartmentId()));
+		return response;
+	}
 
-        departmentRepository.saveAll(departments);
+	/**
+	 * Delete a department by its ID.
+	 */
+	@Override
+	public String deleteDepartmentById(String departmentId) {
+		log.info(ServiceLogInfoMessages.DELETING_ENTITY_WITH_ID
+				.getMessage(EntityNames.DEPARTMENT.getName(), departmentId));
 
-        log.info("Successfully saved {} departments.", departments.size());
-        return "Successfully saved " + departments.size() + " departments";
-    }
-
-    @Override
-    @Transactional
-    public DepartmentResponse updateDepartment(DepartmentUpdateRequest request) {
-        log.info("Starting to update department with request: {}", request);
-
-        Department existingDepartment = departmentRepository.findById(request.getDepartmentId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        ErrorMessageEnum.DEPARTMENT_ID_NOT_FOUND.getMessage(request.getDepartmentId())));
-
-        modelMapper.map(request, existingDepartment);
-
-        Department savedDepartment = departmentRepository.save(existingDepartment);
-
-        DepartmentResponse response = mapToDepartmentResponse(savedDepartment);
-
-        log.info("Department updated successfully with ID: {}", savedDepartment.getDepartmentId());
-        return response;
-    }
-
-    @Override
-    public String deleteDepartmentById(String departmentId) {
-        log.info("Attempting to delete department with ID: {}", departmentId);
-
-        if (!departmentRepository.existsById(departmentId)) {
-            log.warn("Department ID {} not found for deletion", departmentId);
-            throw new ResourceNotFoundException(
-                    ErrorMessageEnum.DEPARTMENT_ID_NOT_FOUND.getMessage(departmentId));
-        }
-
-        departmentRepository.deleteById(departmentId);
-
-        log.info("Department with ID {} deleted successfully", departmentId);
-        return "Department with ID " + departmentId + " deleted successfully";
-    }
-
-    // ==============================
-    // Helper Method
-    // ==============================
-    private DepartmentResponse mapToDepartmentResponse(Department department) {
-        return modelMapper.map(department, DepartmentResponse.class);
-    }
+		if (!departmentRepository.existsById(departmentId)) {
+			log.error(ErrorMessages.DEPARTMENT_ID_NOT_FOUND.getMessage(departmentId));
+			throw new ResourceNotFoundException(
+					ErrorMessages.DEPARTMENT_ID_NOT_FOUND.getMessage(departmentId));
+		}
+		departmentRepository.deleteById(departmentId);
+		log.info(ServiceLogInfoMessages.ENTITY_DELETED_WITH_ID
+				.getMessage(EntityNames.DEPARTMENT.getName(), departmentId));
+		return SuccessMessages.ENTITY_DELETED_WITH_ID
+				.getMessage(EntityNames.DEPARTMENT.getName(), departmentId);
+	}
 }

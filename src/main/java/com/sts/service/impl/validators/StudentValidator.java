@@ -2,7 +2,7 @@ package com.sts.service.impl.validators;
 
 import org.springframework.stereotype.Service;
 
-import com.sts.constants.ErrorMessageEnum;
+import com.sts.constants.ErrorMessages;
 import com.sts.exceptions.ConflictException;
 import com.sts.exceptions.ResourceNotFoundException;
 import com.sts.repository.StudentRepository;
@@ -19,13 +19,13 @@ public class StudentValidator {
 
     public void validateDuplicateStudentId(String studentId) {
         if (studentRepository.existsByStudentId(studentId)) {
-            throw new ConflictException(ErrorMessageEnum.DUPLICATE_STUDENT_ID.getMessage());
+            throw new ConflictException(ErrorMessages.DUPLICATE_STUDENT_ID.getMessage());
         }
     }
 
     public void validateStudentExists(String studentId) {
         if (!studentRepository.existsById(studentId)) {
-            throw new ResourceNotFoundException(ErrorMessageEnum.STUDENT_NOT_FOUND.getMessage());
+            throw new ResourceNotFoundException(ErrorMessages.STUDENT_NOT_FOUND.getMessage());
         }
     }
 }

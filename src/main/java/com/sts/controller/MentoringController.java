@@ -9,12 +9,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sts.constants.Endpoints;
-import com.sts.constants.SuccessMessageEnum;
+import com.sts.constants.SuccessMessages;
 import com.sts.constants.SuccessResponse;
-import com.sts.dto.attendance.GetStudentSemesterAttendanceRes;
 import com.sts.dto.mentoring.GetMentoringStudentsByFacultyIdRes;
 import com.sts.service.interfaces.MentoringService;
-import com.sts.utils.ResponseBuilder;
+import com.sts.utils.ResponseBuilder1;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +28,7 @@ public class MentoringController {
 	@GetMapping("/students/{facultyId}")
 	public ResponseEntity<SuccessResponse<List<GetMentoringStudentsByFacultyIdRes>>> getMentoringStudentsByFacultyId(@PathVariable("facultyId") String facultyId) {
 		List<GetMentoringStudentsByFacultyIdRes> response = mentoringService.getMentoringStudentsByMentorId(facultyId);
-		return ResponseBuilder.ok(response, SuccessMessageEnum.STUDENTS_FETCHED, response.size());
+		return ResponseBuilder1.ok(SuccessMessages.STUDENTS_FETCHED.getMessage(response.size()), response);
 		
 	}
 	

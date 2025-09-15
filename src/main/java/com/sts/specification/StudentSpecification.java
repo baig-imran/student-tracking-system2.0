@@ -2,7 +2,7 @@ package com.sts.specification;
 
 import org.springframework.data.jpa.domain.Specification;
 
-import com.sts.dto.student.StudentGetRequest;
+import com.sts.dto.student.GetStudentReq;
 import com.sts.entity.Department;
 import com.sts.entity.Faculty;
 import com.sts.entity.Student;
@@ -16,7 +16,7 @@ import jakarta.persistence.criteria.Root;
 
 public class StudentSpecification {
 
-    public static Specification<Student> getStudentSpec(StudentGetRequest studentRequest) {
+    public static Specification<Student> getStudentSpec(GetStudentReq studentRequest) {
         return (Root<Student> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) -> {
             Predicate predicate = criteriaBuilder.conjunction();  // Start with a true condition
 

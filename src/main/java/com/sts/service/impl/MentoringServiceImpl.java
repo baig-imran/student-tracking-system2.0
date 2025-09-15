@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import com.sts.constants.ErrorMessageEnum;
+import com.sts.constants.ErrorMessages;
 import com.sts.dto.attendance.GetStudentSemesterAttendanceRes;
 import com.sts.dto.mentoring.GetActiveSemesterAttendanceByStudentIdAndSemesterCodeRes;
 import com.sts.dto.mentoring.GetMentoringStudentsByFacultyIdRes;
@@ -42,7 +42,7 @@ public class MentoringServiceImpl implements MentoringService {
 	    if (students.isEmpty()) {
 	        log.info("No students found for faculty ID: {}", facultyId);
 	        throw new ResourceNotFoundException(
-	            ErrorMessageEnum.FACULTY_ID_NOT_FOUND.getMessage(facultyId)
+	            ErrorMessages.FACULTY_ID_NOT_FOUND.getMessage(facultyId)
 	        );
 	    }
 

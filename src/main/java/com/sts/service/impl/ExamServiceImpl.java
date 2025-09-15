@@ -8,8 +8,8 @@
 //import org.springframework.context.ApplicationContext;
 //import org.springframework.stereotype.Service;
 //
-//import com.sts.constants.ErrorMessageEnum;
-//import com.sts.constants.SuccessMessageEnum;
+//import com.sts.constants.ErrorMessages;
+//import com.sts.constants.SuccessMessages;
 //import com.sts.constants.ValidatorRulesEnum;
 //import com.sts.dto.AddExamRequest;
 //import com.sts.dto.AddExamResponse;
@@ -86,7 +86,7 @@
 //            return responseList;
 //        } catch (Exception ex) {
 //            log.error("Error occurred while fetching exams: {}", ex.getMessage());
-//            throw new DatabaseException(ErrorMessageEnum.FAILED_TO_FETCH_EXAMS.getMessage());
+//            throw new DatabaseException(ErrorMessages.FAILED_TO_FETCH_EXAMS.getMessage());
 //        }
 //    }
 //
@@ -118,7 +118,7 @@
 //            return examResponse;
 //        } catch (Exception ex) {
 //            log.error("Error occurred while saving exam: {}", ex.getMessage(), ex);
-//            throw new DatabaseException(ErrorMessageEnum.FAILED_TO_SAVE_EXAM.getMessage());
+//            throw new DatabaseException(ErrorMessages.FAILED_TO_SAVE_EXAM.getMessage());
 //        }
 //    }
 //
@@ -139,10 +139,10 @@
 //
 //            if (updated > 0) {
 //                log.info("Successfully updated exam.");
-//                return SuccessMessageEnum.EXAM_UPDATED_SUCCESSFULLY.getMessage();
+//                return SuccessMessages.EXAM_UPDATED_SUCCESSFULLY.getMessage();
 //            } else {
 //                
-//                throw new DatabaseException(ErrorMessageEnum.FAILED_TO_UPDATE_EXAM.getMessage());
+//                throw new DatabaseException(ErrorMessages.FAILED_TO_UPDATE_EXAM.getMessage());
 //            }
 //        } catch (DatabaseException ex) {
 //            throw ex; 
@@ -169,10 +169,10 @@
 //            List<Exam> savedExams = examRepository.saveAll(exams);
 //
 //            if (savedExams.size() != examRequests.size()) {
-//                throw new DatabaseException(ErrorMessageEnum.FAILED_TO_SAVE_EXAM.getMessage());
+//                throw new DatabaseException(ErrorMessages.FAILED_TO_SAVE_EXAM.getMessage());
 //            }
 //
-//            return SuccessMessageEnum.EXAMS_SAVED_SUCCESSFULLY.getMessage();
+//            return SuccessMessages.EXAMS_SAVED_SUCCESSFULLY.getMessage();
 //        }catch (DatabaseException ex) {
 //            throw ex; 
 //            
@@ -202,10 +202,10 @@
 //
 //            if (totalUpdated == examUpdateRequests.size()) {
 //                log.info("Successfully updated all {} exams.", examUpdateRequests.size());
-//                return SuccessMessageEnum.EXAMS_UPDATED_SUCCESSFULLY.getMessage();
+//                return SuccessMessages.EXAMS_UPDATED_SUCCESSFULLY.getMessage();
 //            } else {
 //                log.warn("Failed to update {} exams.", examUpdateRequests.size() - totalUpdated);
-//                throw new DatabaseException(ErrorMessageEnum.FAILED_TO_UPDATE_EXAM.getMessage());
+//                throw new DatabaseException(ErrorMessages.FAILED_TO_UPDATE_EXAM.getMessage());
 //            }
 //        }catch (DatabaseException ex) {
 //            throw ex; 
@@ -243,7 +243,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
-import com.sts.constants.ErrorMessageEnum;
+import com.sts.constants.ErrorMessages;
 import com.sts.dto.exam.AddExamRequest;
 import com.sts.dto.exam.AddExamResponse;
 import com.sts.dto.exam.ExamsBySpecificationReq;
@@ -252,6 +252,7 @@ import com.sts.dto.exam.GetExamsBySubjectCodeRes;
 import com.sts.dto.exam.GetExternalExamsBySubjectCodeRes;
 import com.sts.dto.exam.GetInternalExamsBySubjectCodeRes;
 import com.sts.dto.exam.GetSupplyExamsBySubjectCodeRes;
+import com.sts.dto.exam.UpdateExamByExmaCodeReq;
 import com.sts.entity.Exam;
 import com.sts.entity.SemesterSubject;
 import com.sts.exceptions.DuplicateResourceException;
@@ -307,7 +308,7 @@ public class ExamServiceImpl implements ExamService {
 	}
 
 	@Override
-	public List<Exam> GetExamsBySpecification(ExamsBySpecificationReq req) {
+	public List<Exam> getExamsBySpecification(ExamsBySpecificationReq req) {
 		log.info("Fetching exams based on specification: {}", req);
 
 		ObjectValidator.isObjectEmpty(req);
@@ -317,11 +318,27 @@ public class ExamServiceImpl implements ExamService {
 		if (exams.isEmpty()) {
 			log.info("No Exams found for the given filter criteria.");
 			throw new ResourceNotFoundException(
-					ErrorMessageEnum.EXAMS_NOT_FOUND_FOR_SPECIFICATION.getMessage());
+					ErrorMessages.EXAMS_NOT_FOUND_FOR_SPECIFICATION.getMessage());
 		}
 		log.info("Successfully fetched {} students.", exams.size());
 		return exams;
 	}
+	
+//	public List<Exam> updateByExamCode(UpdateExamByExmaCodeReq req) {
+//		log.info("Fetching exams with exam code: {}", req.getExamCode());
+//
+//		Exam existingExam = examRepository.findByExamCode(req.getExamCode()).orElseThrow(() -> new ResourceNotFoundException(
+//				ErrorMessages.EXAM_NOT_FOUND.getMessage(req.getExamCode())));
+//		
+//		existingExam.setExamCode(null);
+//		existingExam.setExamDate(null);
+//		existingExam.setExamName(null);
+//		existingExam.setExamSubType(null);
+//		existingExam.setExamType(null);
+//		existing
+//		
+//		return null;
+//	}
 
 //	    List<GetExamsBySpecificationRes> responses = exams.stream()
 //	            .map(this::mapToGetExamBySpecificationRes)
@@ -345,11 +362,11 @@ public class ExamServiceImpl implements ExamService {
 
 		// Exam exam = examRepository.getByExamCode(req.getExamCode()).orElseThrow(() ->
 		// new
-		// ResourceNotFoundException(ErrorMessageEnum.EXAM_NOT_FOUND.getMessage(req.getExamCode())));
+		// ResourceNotFoundException(ErrorMessages.EXAM_NOT_FOUND.getMessage(req.getExamCode())));
 
 		SemesterSubject semesterSubject = semesterSubjectRepository.findById(req.getSubjectCode())
 				.orElseThrow(() -> new ResourceNotFoundException(
-						ErrorMessageEnum.SEMESTER_SUBJECT_NOT_FOUND.getMessage(req.getSubjectCode())));
+						ErrorMessages.SEMESTER_SUBJECT_NOT_FOUND.getMessage(req.getSubjectCode())));
 		Exam newExam = modelMapper.map(req, Exam.class);
 		newExam.setSemesterSubject(semesterSubject);
 		newExam.setSemester(semesterSubject.getSemester());
@@ -362,7 +379,7 @@ public class ExamServiceImpl implements ExamService {
 	}
 
 	@Override
-	public String bulkCreateExams(List<AddExamRequest> requests) {
+	public String createBulkExams(List<AddExamRequest> requests) {
 		if (requests == null || requests.isEmpty()) {
 			throw new IllegalArgumentException("Exam request list is empty");
 		}
@@ -372,10 +389,10 @@ public class ExamServiceImpl implements ExamService {
 		for (AddExamRequest req : requests) {
 			SemesterSubject semesterSubject = semesterSubjectRepository.findById(req.getSubjectCode())
 					.orElseThrow(() -> new ResourceNotFoundException(
-							ErrorMessageEnum.SEMESTER_SUBJECT_NOT_FOUND.getMessage(req.getSubjectCode())));
+							ErrorMessages.SEMESTER_SUBJECT_NOT_FOUND.getMessage(req.getSubjectCode())));
 			if (examRepository.existsByExamCode(req.getExamCode())) {
 				throw new DuplicateResourceException(
-						ErrorMessageEnum.DUPLICATE_EXAM_CODE.getMessage(req.getExamCode()));
+						ErrorMessages.DUPLICATE_EXAM_CODE.getMessage(req.getExamCode()));
 			}
 			Exam exam = modelMapper.map(req, Exam.class);
 			exam.setSemesterSubject(semesterSubject);
@@ -447,7 +464,7 @@ public class ExamServiceImpl implements ExamService {
 //		List<Exam> exams = examRepository.findAllBySemesterSubject_SubjectCode(subjectCode);
 		ExamsBySpecificationReq spec = new ExamsBySpecificationReq();
 		spec.setSubjectCode(subjectCode);
-		List<Exam> exams = GetExamsBySpecification(spec);
+		List<Exam> exams = getExamsBySpecification(spec);
 		exams.forEach(exam -> {
 			log.info("Exam code: {}", exam.getExamCode());
 		});
@@ -471,7 +488,7 @@ public class ExamServiceImpl implements ExamService {
 		ExamsBySpecificationReq spec = new ExamsBySpecificationReq();
 		spec.setSubjectCode(subjectCode);
 		spec.setExamType("internal");
-		List<Exam> exams = GetExamsBySpecification(spec);
+		List<Exam> exams = getExamsBySpecification(spec);
 
 		exams.forEach(exam -> {
 			log.info("Exam code: {}", exam.getExamCode());
@@ -496,7 +513,7 @@ public class ExamServiceImpl implements ExamService {
 		spec.setSubjectCode(subjectCode);
 		spec.setExamType("external");
 		spec.setExamSubType("regular");
-		List<Exam> exams = GetExamsBySpecification(spec);
+		List<Exam> exams = getExamsBySpecification(spec);
 
 		exams.forEach(exam -> {
 			log.info("Exam code: {}", exam.getExamCode());
@@ -524,7 +541,7 @@ public class ExamServiceImpl implements ExamService {
 		spec.setExamSubType("supply");
 
 		log.info("Calling GetExamsBySpecification with spec: {}", spec);
-		List<Exam> exams = GetExamsBySpecification(spec);
+		List<Exam> exams = getExamsBySpecification(spec);
 
 		if (exams == null || exams.isEmpty()) {
 			log.info("No exams found for subjectCode: {}", subjectCode);
@@ -582,7 +599,7 @@ public class ExamServiceImpl implements ExamService {
 		spec.setExamType(examType);
 		spec.setExamSubType(examSubType);
 
-		List<Exam> exams = GetExamsBySpecification(spec);
+		List<Exam> exams = getExamsBySpecification(spec);
 
 		exams.forEach(exam -> {
 			log.info("Exam code {} | Exam Subtype {}", exam.getExamCode(), examSubType);

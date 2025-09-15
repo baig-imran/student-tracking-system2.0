@@ -10,7 +10,7 @@ public interface StudentSubjectService {
 	
 	void saveStudentSubject();
 	List<AddStudentsToSubjectRes> addStudentsToSubject(List<AddStudentsToSubjectReq> req);
-	List<String> getSubjectStudentsBySubjectCode(String subjectCode);
+	List<String> getStudentsBySubjectCode(String subjectCode);
 	
 
 }

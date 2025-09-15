@@ -30,8 +30,7 @@ public interface ExamRepository extends JpaRepository<Exam, Long>, JpaSpecificat
 //    );
 	
 	
-	Optional<Exam> getByExamCode(String examCode);
-
+	Optional<Exam> findByExamCode(String examCode);
 	List<Exam> findAllBySemesterSubject_SubjectCode(String subjectCode);
 
 	boolean existsByExamCode(String examCode);

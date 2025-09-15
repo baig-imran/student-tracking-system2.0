@@ -10,11 +10,11 @@ import com.sts.dto.subjects.SubjectUpdateRequest;
 public interface SubjectService {
     SubjectResponse getSubjectById(String subjectId);
     List<SubjectResponse> getAllSubjects();
-    SubjectResponse saveSubject(SubjectCreateRequest request);
+    SubjectResponse response(SubjectCreateRequest request);
     SubjectResponse updateSubject(SubjectUpdateRequest request);
     String deleteSubjectById(String subjectId);
-	List<SubjectResponse> getSubjectsByCriteria(SubjectGetRequest subjectGetRequest);
-	List<SubjectResponse> saveMultipleSubjects(List<SubjectCreateRequest> subjectRequests);
+	List<SubjectResponse> getSubjectsBySpecification(SubjectGetRequest subjectGetRequest);
+	List<SubjectResponse> createBulkSubjects(List<SubjectCreateRequest> subjectRequests);
 	
 }
 

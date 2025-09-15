@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sts.constants.Endpoints;
-import com.sts.constants.SuccessMessageEnum;
+import com.sts.constants.SuccessMessages;
 import com.sts.constants.SuccessResponse;
 import com.sts.dto.semester.AddFacultiesToSemReq;
 import com.sts.dto.semester.AddFacultiesToSemRes;
@@ -84,7 +84,7 @@ public class SemesterController {
 
 	    SuccessResponse<List<AddFacultiesToSemRes>> response = new SuccessResponse<>(
 	        addFacultiesToSemRes,
-	        SuccessMessageEnum.FACULTY_ADDED_TO_SEMESTER.getMessage(),
+	        SuccessMessages.FACULTY_ADDED_TO_SEMESTER.getMessage(),
 	        HttpStatus.OK.value()
 	    );
 
@@ -101,7 +101,7 @@ public class SemesterController {
 
 	    SuccessResponse<List<AddStudentsToSemRes>> response = new SuccessResponse<>(
 	        resList,
-	        SuccessMessageEnum.STUDENTS_ADDED_TO_SEMESTER.getMessage(),
+	        SuccessMessages.STUDENTS_ADDED_TO_SEMESTER.getMessage(),
 	        HttpStatus.OK.value()
 	    );
 
@@ -114,7 +114,7 @@ public class SemesterController {
 	    log.info("Received request to map subjects to semesters. Count: {}", reqList.size());
 	    List<AddSubjectsToSemRes> resList = semesterService.addSubjectsToSemester(reqList);
 	    SuccessResponse<List<AddSubjectsToSemRes>> response = new SuccessResponse<>(resList,
-	        SuccessMessageEnum.SUBJECTS_ADDED_TO_SEMESTER.getMessage(), HttpStatus.OK.value());
+	        SuccessMessages.SUBJECTS_ADDED_TO_SEMESTER.getMessage(), HttpStatus.OK.value());
 	    return ResponseEntity.ok(response);
 	}
 
@@ -128,7 +128,7 @@ public class SemesterController {
 
 	    SuccessResponse<List<AddStudentsToSubjectRes>> response = new SuccessResponse<>(
 	            resList,
-	            SuccessMessageEnum.STUDENTS_ADDED_TO_SUBJECT.getMessage(),
+	            SuccessMessages.STUDENTS_ADDED_TO_SUBJECT.getMessage(),
 	            HttpStatus.OK.value()
 	    );
 
@@ -147,7 +147,7 @@ public class SemesterController {
 	    // Wrap the response in SuccessResponse
 	    SuccessResponse<GetStartDateAndEndDateBySemesterCodeRes> response = new SuccessResponse<>(
 	            responseData,
-	            SuccessMessageEnum.SEMESTER_DATES_FETCHED.getMessage(semesterCode),
+	            SuccessMessages.SEMESTER_DATES_FETCHED.getMessage(semesterCode),
 	            HttpStatus.OK.value()
 	    );
 

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sts.dto.UserRequest;
+import com.sts.dto.user.CreateUserReq;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -25,7 +25,7 @@ public class AuthController {
 
 
 //	@PostMapping("/login")
-//    public ResponseEntity<?> login(@RequestBody UserRequest userRequest) {
+//    public ResponseEntity<?> login(@RequestBody CreateUserReq userRequest) {
 //        Authentication authentication = authenticationProvider.authenticate(
 //            new UsernamePasswordAuthenticationToken(userRequest.getUserName(), userRequest.getPassword()));
 //

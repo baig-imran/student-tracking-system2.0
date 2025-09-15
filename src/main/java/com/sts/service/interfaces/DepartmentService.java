@@ -2,18 +2,20 @@ package com.sts.service.interfaces;
 
 import java.util.List;
 
-import com.sts.dto.department.DepartmentCreateRequest;
+import com.sts.dto.department.CreateDepartmentReq;
+import com.sts.dto.department.CreateDepartmentRes;
 import com.sts.dto.department.DepartmentResponse;
-import com.sts.dto.department.DepartmentUpdateRequest;
-import com.sts.entity.Department;
+import com.sts.dto.department.GetDepartmentByIdRes;
+import com.sts.dto.department.UpdateDepartmentReq;
+import com.sts.dto.department.UpdateDepartmentRes;
 
 public interface DepartmentService{
 
-	 	DepartmentResponse getDepartmentById(String departmentId);
+	 	GetDepartmentByIdRes getDepartmentById(String departmentId);
 	    List<DepartmentResponse> getAllDepartments();
-	    DepartmentResponse saveDepartment(DepartmentCreateRequest request);
-	    String bulkCreateDepartments(List<DepartmentCreateRequest> requests);
-	    DepartmentResponse updateDepartment(DepartmentUpdateRequest request);
+	    CreateDepartmentRes createDepartment(CreateDepartmentReq request);
+	    String createDepartmentsInBulk(List<CreateDepartmentReq> requests);
+	    UpdateDepartmentRes updateDepartment(UpdateDepartmentReq request);
 	    String deleteDepartmentById(String departmentId);
 	
 	

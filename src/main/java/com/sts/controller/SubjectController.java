@@ -12,14 +12,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sts.constants.APILogDebugMessages;
+import com.sts.constants.APILogInfoMessages;
 import com.sts.constants.Endpoints;
-import com.sts.constants.SuccessMessageEnum;
+import com.sts.constants.EntityNames;
+import com.sts.constants.SuccessMessages;
+import com.sts.constants.SuccessResponse;
 import com.sts.dto.subjects.SubjectCreateRequest;
 import com.sts.dto.subjects.SubjectGetRequest;
 import com.sts.dto.subjects.SubjectResponse;
 import com.sts.dto.subjects.SubjectUpdateRequest;
 import com.sts.service.interfaces.SubjectService;
 import com.sts.utils.ResponseBuilder;
+import com.sts.utils.ResponseBuilder1;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,51 +38,69 @@ public class SubjectController {
     private final SubjectService subjectService;
 
     @PostMapping
-    public ResponseEntity<?> createSubject(@RequestBody SubjectCreateRequest request) {
-        log.info("Received request to create subject: {}", request);
-        SubjectResponse response = subjectService.saveSubject(request);
-        return ResponseBuilder.created(response, SuccessMessageEnum.SUBJECT_CREATED);
+    public ResponseEntity<SuccessResponse<SubjectResponse>> createSubject(@RequestBody SubjectCreateRequest req) {
+        log.info(APILogInfoMessages.CREATE_ENTITY_WITH_ID.getMessage(EntityNames.SUBJECT, req.getSubjectId()));
+        log.debug(APILogDebugMessages.REQUEST_OBJECT.getMessage(EntityNames.SUBJECT, req));
+        SubjectResponse response = subjectService.response(req);
+        log.debug(APILogDebugMessages.RESPONSE_OBJECT.getMessage(EntityNames.SUBJECT, response));
+        log.info(APILogInfoMessages.ENTITY_CREATED_WITH_ID.getMessage(EntityNames.SUBJECT, response.getSubjectId()));
+        return ResponseBuilder1.created(SuccessMessages.ENTITY_CREATED.getMessage(EntityNames.SUBJECT, response.getSubjectId()), response);
     }
 
     @PostMapping("/bulk")
-    public ResponseEntity<?> createBulkSubject(@RequestBody List<SubjectCreateRequest> requests) {
-        log.info("Received request to create {} subjects", requests.size());
-        List<SubjectResponse> responses = subjectService.saveMultipleSubjects(requests);
-        return ResponseBuilder.created(responses, SuccessMessageEnum.SUBJECTS_CREATED);
+    public ResponseEntity<SuccessResponse<List<SubjectResponse>>> createBulkSubjects(@RequestBody List<SubjectCreateRequest> req) {
+        log.info(APILogInfoMessages.CREATE_BULK_ENTITIES_WITH_SIZE.getMessage(EntityNames.SUBJECTS, req.size()));
+        log.debug(APILogDebugMessages.BULK_REQUEST_OBJECT.getMessage(EntityNames.SUBJECTS, req.size(), req));
+        List<SubjectResponse> responses = subjectService.createBulkSubjects(req);
+        log.debug(APILogDebugMessages.RESPONSE_OBJECT.getMessage(EntityNames.SUBJECTS, responses));
+        log.info(APILogInfoMessages.BULK_ENTITIES_CREATED_WITH_SIZE.getMessage(EntityNames.SUBJECTS, responses.size()));
+        return ResponseBuilder1.created(SuccessMessages.BULK_ENTITIES_CREATED.getMessage(req.size(), EntityNames.SUBJECTS), responses);
     }
 
     @GetMapping("/{subjectId}")
-    public ResponseEntity<?> getSubject(@PathVariable("subjectId") String subjectId) {
-        log.info("Fetching subject with id: {}", subjectId);
+    public ResponseEntity<SuccessResponse<SubjectResponse>> getSubjectById(@PathVariable("subjectId") String subjectId) {
+        log.info(APILogInfoMessages.FETCH_ENTITY_WITH_ID.getMessage(EntityNames.SUBJECT, subjectId));
         SubjectResponse response = subjectService.getSubjectById(subjectId);
-        return ResponseBuilder.ok(response, SuccessMessageEnum.SUBJECT_FETCHED);
+        log.debug(APILogDebugMessages.RESPONSE_OBJECT.getMessage(EntityNames.SUBJECT, response));
+        log.info(APILogInfoMessages.ENTITY_FETCHED_WITH_ID.getMessage(EntityNames.SUBJECT, subjectId));
+        return ResponseBuilder1.ok(SuccessMessages.FETCH_ENTITY_WITH_ID.getMessage(EntityNames.SUBJECT, subjectId),response);
     }
 
     @PostMapping("/search")
-    public ResponseEntity<?> getSubjectsByCriteria(@RequestBody SubjectGetRequest req) {
-        log.info("Searching for subjects with criteria: {}", req);
-        List<SubjectResponse> responses = subjectService.getSubjectsByCriteria(req);
-        return ResponseBuilder.ok(responses, SuccessMessageEnum.SUBJECTS_FETCHED);
+    public ResponseEntity<SuccessResponse<List<SubjectResponse>>> getSubjectsBySpecification(@RequestBody SubjectGetRequest req) {
+        log.info(APILogInfoMessages.FETCHING_ENTITIES_BY_SPECIFICATION.getMessage(EntityNames.SUBJECTS));
+        log.debug(APILogDebugMessages.REQUEST_OBJECT.getMessage(EntityNames.SUBJECTS, req));
+        List<SubjectResponse> responses = subjectService.getSubjectsBySpecification(req);
+        log.debug(APILogDebugMessages.RESPONSE_OBJECT.getMessage(EntityNames.SUBJECTS, responses));
+        log.info(APILogInfoMessages.ENTITIES_FETCHED_BY_SPECIFICATION.getMessage(responses.size(), EntityNames.SUBJECTS));
+        return ResponseBuilder1.ok(SuccessMessages.ENTITIES_FETCHED_BY_SPECIFICATION.getMessage(responses.size(), EntityNames.SUBJECTS), responses);
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllSubjects() {
-        log.info("Fetching all subjects");
+    public ResponseEntity<SuccessResponse<List<SubjectResponse>>> getAllSubjects() {
+        log.info(APILogInfoMessages.FETCHING_ALL_ENTITIES.getMessage(EntityNames.SUBJECTS));
         List<SubjectResponse> responses = subjectService.getAllSubjects();
-        return ResponseBuilder.ok(responses, SuccessMessageEnum.SUBJECTS_FETCHED);
+        log.debug(APILogDebugMessages.RESPONSE_OBJECT.getMessage(EntityNames.SUBJECTS, responses));
+        log.info(APILogInfoMessages.ALL_ENTITIES_FETCHED.getMessage(responses.size(), EntityNames.SUBJECTS));
+        return ResponseBuilder1.ok(SuccessMessages.ALL_ENTITIES_FETCHED.getMessage(responses.size(), EntityNames.SUBJECTS), responses);
     }
 
     @PutMapping
-    public ResponseEntity<?> updateSubject(@RequestBody SubjectUpdateRequest request) {
-        log.info("Updating subject: {}", request);
+    public ResponseEntity<SuccessResponse<SubjectResponse>> updateSubject(@RequestBody SubjectUpdateRequest request) {
+        log.info(APILogInfoMessages.UPDATE_ENTITY_WITH_ID.getMessage(EntityNames.SUBJECT, request.getSubjectId()));
+        log.debug(APILogDebugMessages.REQUEST_OBJECT.getMessage(EntityNames.SUBJECT, request));
         SubjectResponse response = subjectService.updateSubject(request);
-        return ResponseBuilder.ok(response, SuccessMessageEnum.SUBJECT_UPDATED);
+        log.debug(APILogDebugMessages.RESPONSE_OBJECT.getMessage(EntityNames.SUBJECT, response));
+        log.info(APILogInfoMessages.ENTITY_UPDATED_WITH_ID.getMessage(EntityNames.SUBJECT, response.getSubjectId()));
+        return ResponseBuilder1.ok(SuccessMessages.ENTITY_UPDATED.getMessage(EntityNames.SUBJECT, response.getSubjectId()), response);
     }
 
     @DeleteMapping("/{subjectId}")
-    public ResponseEntity<?> deleteSubject(@PathVariable("subjectId") String subjectId) {
-        log.info("Deleting subject with id: {}", subjectId);
+    public ResponseEntity<SuccessResponse<String>> deleteSubjectById(@PathVariable("subjectId") String subjectId) {
+        log.info(APILogInfoMessages.DELETE_ENTITY_WITH_ID.getMessage(EntityNames.SUBJECT, subjectId));
         String result = subjectService.deleteSubjectById(subjectId);
-        return ResponseBuilder.ok(result, SuccessMessageEnum.SUBJECT_DELETED);
+        log.debug(APILogDebugMessages.RESPONSE_OBJECT.getMessage(EntityNames.SUBJECT, result));
+        log.info(APILogInfoMessages.ENTITY_DELETED_WITH_ID.getMessage(EntityNames.SUBJECT, subjectId));
+        return ResponseBuilder1.ok(result, SuccessMessages.ENTITY_DELETED_WITH_ID.getMessage(EntityNames.SUBJECT, subjectId));
     }
 }

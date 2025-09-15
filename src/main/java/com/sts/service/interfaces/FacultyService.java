@@ -10,10 +10,10 @@ import com.sts.dto.faculty.FacultyUpdateRequest;
 public interface FacultyService {
     FacultyResponse getFacultyById(String facultyId);
     List<FacultyResponse> getAllFaculties();
-    FacultyResponse saveFaculty(FacultyCreateRequest request);
+    FacultyResponse createFaculty(FacultyCreateRequest request);
     FacultyResponse updateFaculty(FacultyUpdateRequest request);
     String deleteFacultyById(String facultyId);
-	List<FacultyResponse> getFacultyByCriteria(FacultyGetRequest facultyGetRequest);
+	List<FacultyResponse> getFacultyBySpecification(FacultyGetRequest facultyGetRequest);
 	List<FacultyResponse> saveMultipleFaculties(List<FacultyCreateRequest> facultyRequests);
 	String addBulkFaculties(List<FacultyCreateRequest> requests);
 	

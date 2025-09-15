@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sts.constants.Endpoints;
-import com.sts.constants.SuccessMessageEnum;
+import com.sts.constants.SuccessMessages;
 import com.sts.dto.attendance.AddAttendanceRequest;
 import com.sts.dto.attendance.AttendanceRequest;
 import com.sts.dto.attendance.AttendanceResponse;
@@ -42,21 +42,21 @@ public class AttendanceController {
 	public ResponseEntity<?> getAllStudentsSemesterAttendance(@PathVariable("subjectCode") String subjectCode) {
 		log.info("Fetching semester attendance for all students with subjectCode: {}", subjectCode);
 		List<GetStudentSemesterAttendanceRes> response = attendanceService.getAllStudentsSemesterAttendance(subjectCode);
-		return ResponseBuilder.ok(response, SuccessMessageEnum.ATTENDANCES_FETCHED, response.size());
+		return ResponseBuilder.ok(response, SuccessMessages.ATTENDANCES_FETCHED, response.size());
 	}
 
 	@GetMapping("/students/{studentId}")
 	public ResponseEntity<?> getAttendancesByStudentId(@PathVariable("studentId") String studentId) {
 		log.info("Fetching all semester attendance for studentId: {}", studentId);
 		GetStudentAllSemesterAttendanceRes response = attendanceService.getAttendancesByStudentId(studentId);
-		return ResponseBuilder.ok(response, SuccessMessageEnum.ATTENDANCE_FETCHED, studentId);
+		return ResponseBuilder.ok(response, SuccessMessages.ATTENDANCE_FETCHED, studentId);
 	}
 
 	@PostMapping("/getAttendanceByStudentIdAndSubjectCode")
 	public ResponseEntity<?> getAttendanceByStudentIdAndSubjectCode(@RequestBody GetAttendanceByStudentIdAndSubjectCodeReq req) {
 		log.info("Fetching attendance for studentId: {} and subjectCode: {}", req.getStudentId(), req.getSubjectCode());
 		String response = attendanceService.getAttendanceByStudentIdAndSubjectCode(req);
-		return ResponseBuilder.ok(response, SuccessMessageEnum.ATTENDANCE_FETCHED, req.getStudentId(), req.getSubjectCode());
+		return ResponseBuilder.ok(response, SuccessMessages.ATTENDANCE_FETCHED, req.getStudentId(), req.getSubjectCode());
 	}
 
 	@PostMapping("/search")
@@ -64,42 +64,42 @@ public class AttendanceController {
 		log.info("Searching attendance records with filter criteria: {}", filterRequest);
 		List<AttendanceResponse> attendanceList = attendanceService.getAttendance(filterRequest);
 		log.info("Found {} attendance records", attendanceList.size());
-		return ResponseBuilder.ok(attendanceList, SuccessMessageEnum.ATTENDANCES_FETCHED, attendanceList.size());
+		return ResponseBuilder.ok(attendanceList, SuccessMessages.ATTENDANCES_FETCHED, attendanceList.size());
 	}
 
 	@PostMapping
 	public ResponseEntity<?> createAttendance(@RequestBody AttendanceRequest attendanceRequest) {
 		log.info("Creating new attendance record: {}", attendanceRequest);
 		AttendanceResponse savedAttendance = attendanceService.createAttendance(attendanceRequest);
-		return ResponseBuilder.created(savedAttendance, SuccessMessageEnum.ATTENDANCE_CREATED);
+		return ResponseBuilder.created(savedAttendance, SuccessMessages.ATTENDANCE_CREATED);
 	}
 
 	@PutMapping
 	public ResponseEntity<?> updateAttendance(@RequestBody AttendanceUpdateRequest attendanceUpdateRequest) {
 		log.info("Updating attendance record: {}", attendanceUpdateRequest);
 		String updateStatus = attendanceService.updateAttendance(attendanceUpdateRequest);
-		return ResponseBuilder.ok(updateStatus, SuccessMessageEnum.ATTENDANCE_UPDATED);
+		return ResponseBuilder.ok(updateStatus, SuccessMessages.ATTENDANCE_UPDATED);
 	}
 
 	@PostMapping("/bulk")
 	public ResponseEntity<?> createSubjectStudentsAttendance(@RequestBody List<AttendanceRequest> attendanceRequests) {
 		log.info("Creating bulk attendance records for {} students", attendanceRequests.size());
 		String creationStatus = attendanceService.saveSubjectStudentsAttendance(attendanceRequests);
-		return ResponseBuilder.created(creationStatus, SuccessMessageEnum.ATTENDANCES_BULK_CREATED, attendanceRequests.size());
+		return ResponseBuilder.created(creationStatus, SuccessMessages.ATTENDANCES_BULK_CREATED, attendanceRequests.size());
 	}
 
 	@PostMapping("/bulk2")
 	public ResponseEntity<?> bulkCreateAttendances(@RequestBody List<AddAttendanceRequest> requestList) {
 		log.info("Creating multi-day attendance records for {} students", requestList.size());
 		String creationStatus = attendanceService.bulkCreateAttendances(requestList);
-		return ResponseBuilder.created(creationStatus, SuccessMessageEnum.ATTENDANCES_BULK_CREATED, requestList.size());
+		return ResponseBuilder.created(creationStatus, SuccessMessages.ATTENDANCES_BULK_CREATED, requestList.size());
 	}
 
 	@PutMapping("/bulk")
 	public ResponseEntity<?> updateMultipleAttendance(@RequestBody List<AttendanceUpdateRequest> attendanceUpdateRequests) {
 		log.info("Updating bulk attendance records for {} students", attendanceUpdateRequests.size());
 		String updateStatus = attendanceService.updateMultipleAttendance(attendanceUpdateRequests);
-		return ResponseBuilder.ok(updateStatus, SuccessMessageEnum.ATTENDANCES_BULK_UPDATED, attendanceUpdateRequests.size());
+		return ResponseBuilder.ok(updateStatus, SuccessMessages.ATTENDANCES_BULK_UPDATED, attendanceUpdateRequests.size());
 	}
 
 	@GetMapping("/student/{studentId}/semester/{semesterCode}")
@@ -112,7 +112,7 @@ public class AttendanceController {
 
 		return ResponseBuilder.ok(
 				response,
-				SuccessMessageEnum.ATTENDANCE_FETCHED,
+				SuccessMessages.ATTENDANCE_FETCHED,
 				String.format("Attendance fetched for student %s in semester %s", studentId, semesterCode)
 				);
 	}
@@ -126,7 +126,7 @@ public class AttendanceController {
 
 		return ResponseBuilder.ok(
 				response,
-				SuccessMessageEnum.ATTENDANCE_FETCHED,
+				SuccessMessages.ATTENDANCE_FETCHED,
 				String.format("Attendance fetched for student %s ", studentId)
 				);
 	}
@@ -139,7 +139,7 @@ public class AttendanceController {
 //
 //	    return ResponseBuilder.ok(
 //	            response,
-//	            SuccessMessageEnum.ATTENDANCE_FETCHED,
+//	            SuccessMessages.ATTENDANCE_FETCHED,
 //	            String.format("Low attendance students fetched for active semester below")
 //	    );
 //	}
@@ -159,7 +159,7 @@ public class AttendanceController {
 	    // Return successful response with data wrapped by ResponseBuilder
 	    return ResponseBuilder.ok(
 	            lowAttendanceStudents,
-	            SuccessMessageEnum.ATTENDANCE_FETCHED,
+	            SuccessMessages.ATTENDANCE_FETCHED,
 	            String.format("Low attendance students fetched for faculty %s", facultyId)
 	    );
 	}

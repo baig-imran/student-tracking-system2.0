@@ -28,12 +28,12 @@ public interface ExamService {
 
 	List<GetExamsBySubjectCodeRes> getExamsBySubjectCode(String subjectCode);
 
-	String bulkCreateExams(List<AddExamRequest> requests);
+	String createBulkExams(List<AddExamRequest> requests);
 
 	List<GetExamsBySubjectCodeRes> getExamsBySubjectCodeAndExamTypeAndExamSubType(String subjectCode, String examType,
 			String examSubType);
 
-	List<Exam> GetExamsBySpecification(ExamsBySpecificationReq req);
+	List<Exam> getExamsBySpecification(ExamsBySpecificationReq req);
 	
 	GetExamsBySpecificationRes mapExamToGetExamBySpecificationRes(Exam exam);
 

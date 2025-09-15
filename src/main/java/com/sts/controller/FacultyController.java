@@ -12,15 +12,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sts.constants.APILogDebugMessages;
+import com.sts.constants.APILogInfoMessages;
 import com.sts.constants.Endpoints;
-import com.sts.constants.SuccessMessageEnum;
+import com.sts.constants.EntityNames;
+import com.sts.constants.SuccessMessages;
 import com.sts.constants.SuccessResponse;
 import com.sts.dto.faculty.FacultyCreateRequest;
 import com.sts.dto.faculty.FacultyGetRequest;
 import com.sts.dto.faculty.FacultyResponse;
 import com.sts.dto.faculty.FacultyUpdateRequest;
 import com.sts.service.interfaces.FacultyService;
-import com.sts.utils.ResponseBuilder;
+import com.sts.utils.ResponseBuilder1;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,53 +36,71 @@ public class FacultyController {
 
     private final FacultyService facultyService;
 
+
     @GetMapping("/{facultyId}")
-    public ResponseEntity<?> getFacultyById(@PathVariable("facultyId") String facultyId) {
-        log.info("Fetching faculty with ID: {}", facultyId);
-        FacultyResponse response = facultyService.getFacultyById(facultyId);
-        return ResponseBuilder.ok(response, SuccessMessageEnum.FACULTY_FETCHED, facultyId);
+    public ResponseEntity<SuccessResponse<FacultyResponse>> getFacultyById(@PathVariable("facultyId") String facultyId) {
+        log.info(APILogInfoMessages.FETCH_ENTITY_WITH_ID.getMessage(EntityNames.FACULTY, facultyId));
+        FacultyResponse res = facultyService.getFacultyById(facultyId);
+        log.debug(APILogDebugMessages.RESPONSE_OBJECT.getMessage(EntityNames.FACULTY, res));
+        log.info(APILogInfoMessages.ENTITY_FETCHED_WITH_ID.getMessage(EntityNames.FACULTY, facultyId));
+        return ResponseBuilder1.ok(SuccessMessages.FETCH_ENTITY_WITH_ID.getMessage(EntityNames.FACULTY, facultyId), res);
     }
 
     @PostMapping("/search")
-    public ResponseEntity<?> getFaculty(@RequestBody FacultyGetRequest facultyGetRequest) {
-        log.info("Searching faculties with criteria: {}", facultyGetRequest);
-        List<FacultyResponse> responses = facultyService.getFacultyByCriteria(facultyGetRequest);
-        return ResponseBuilder.ok(responses, SuccessMessageEnum.FACULTIES_FETCHED, responses.size());
+    public ResponseEntity<SuccessResponse<List<FacultyResponse>>> getFacultyBySpecification(@RequestBody FacultyGetRequest req) {
+        log.info(APILogInfoMessages.SEARCH_ENTITIES.getMessage(EntityNames.FACULTIES));
+        log.debug(APILogDebugMessages.REQUEST_OBJECT.getMessage(EntityNames.FACULTIES, req));
+        List<FacultyResponse> res = facultyService.getFacultyBySpecification(req);
+        log.debug(APILogDebugMessages.RESPONSE_OBJECT.getMessage(EntityNames.FACULTIES, res));
+        log.info(APILogInfoMessages.ENTITIES_SEARCHED.getMessage(EntityNames.FACULTIES, res.size()));
+        return ResponseBuilder1.ok(SuccessMessages.ALL_ENTITIES_FETCHED.getMessage(res.size(), EntityNames.FACULTIES), res);
     }
 
-    @GetMapping
-    public ResponseEntity<?> getAllFaculties() {
-        log.info("Fetching all faculties");
-        List<FacultyResponse> responses = facultyService.getAllFaculties();
-        return ResponseBuilder.ok(responses, SuccessMessageEnum.FACULTIES_FETCHED, responses.size());
+    @GetMapping("/bulk")
+    public ResponseEntity<SuccessResponse<List<FacultyResponse>>> getAllFaculties() {
+        log.info(APILogInfoMessages.FETCHING_ALL_ENTITIES.getMessage(EntityNames.FACULTIES));
+        List<FacultyResponse> res = facultyService.getAllFaculties();
+        log.debug(APILogDebugMessages.RESPONSE_OBJECT.getMessage(EntityNames.FACULTIES, res));
+        log.info(APILogInfoMessages.ALL_ENTITIES_FETCHED.getMessage(res.size(), EntityNames.FACULTIES));
+        return ResponseBuilder1.ok(SuccessMessages.ALL_ENTITIES_FETCHED.getMessage(res.size(), EntityNames.FACULTIES), res);
     }
 
     @PostMapping
-    public ResponseEntity<?> createFaculty(@RequestBody FacultyCreateRequest request) {
-        log.info("Creating faculty: {}", request);
-        FacultyResponse response = facultyService.saveFaculty(request);
-        return ResponseBuilder.created(response, SuccessMessageEnum.FACULTY_CREATED, response.getFacultyId());
+    public ResponseEntity<SuccessResponse<FacultyResponse>> createFaculty(@RequestBody FacultyCreateRequest req) {
+        log.info(APILogInfoMessages.CREATE_ENTITY_WITH_ID.getMessage(EntityNames.FACULTY, req.getFacultyId()));
+        log.debug(APILogDebugMessages.REQUEST_OBJECT.getMessage(EntityNames.FACULTY, req));
+        FacultyResponse res = facultyService.createFaculty(req);
+        log.debug(APILogDebugMessages.RESPONSE_OBJECT.getMessage(EntityNames.FACULTY, res));
+        log.info(APILogInfoMessages.ENTITY_CREATED_WITH_ID.getMessage(EntityNames.FACULTY, res.getFacultyId()));
+        return ResponseBuilder1.created(SuccessMessages.ENTITY_CREATED.getMessage(EntityNames.FACULTY, res.getFacultyId()), res);
     }
-    
 
     @PostMapping("/bulk")
-    public ResponseEntity<?> createMultipleFaculties(@RequestBody List<FacultyCreateRequest> requests) {
-        log.info("Creating multiple faculties: {}", requests.size());
-        List<FacultyResponse> responses = facultyService.saveMultipleFaculties(requests);
-        return ResponseBuilder.created(responses, SuccessMessageEnum.FACULTIES_BULK_CREATED, requests.size());
+    public ResponseEntity<SuccessResponse<Object>> addBulkFaculties(@RequestBody List<FacultyCreateRequest> req) {
+        log.info(APILogInfoMessages.CREATE_BULK_ENTITIES_WITH_SIZE.getMessage(EntityNames.FACULTIES, req.size()));
+        log.debug(APILogDebugMessages.BULK_REQUEST_OBJECT.getMessage(EntityNames.FACULTIES, req.size(), req));
+        String res = facultyService.addBulkFaculties(req);
+        log.debug(APILogDebugMessages.RESPONSE_OBJECT.getMessage(EntityNames.FACULTIES, res));
+        log.info(APILogInfoMessages.BULK_ENTITIES_CREATED_WITH_SIZE.getMessage(EntityNames.FACULTIES, req.size()));
+        return ResponseBuilder1.ok(SuccessMessages.BULK_ENTITIES_CREATED.getMessage(req.size(), EntityNames.FACULTIES), res);
     }
 
     @PutMapping
-    public ResponseEntity<?> updateFaculty(@RequestBody FacultyUpdateRequest request) {
-        log.info("Updating faculty: {}", request);
-        FacultyResponse response = facultyService.updateFaculty(request);
-        return ResponseBuilder.ok(response, SuccessMessageEnum.FACULTY_UPDATED, response.getFacultyId());
+    public ResponseEntity<SuccessResponse<FacultyResponse>> updateFaculty(@RequestBody FacultyUpdateRequest request) {
+        log.info(APILogInfoMessages.UPDATE_ENTITY_WITH_ID.getMessage(EntityNames.FACULTY, request.getFacultyId()));
+        log.debug(APILogDebugMessages.REQUEST_OBJECT.getMessage(EntityNames.FACULTY, request));
+        FacultyResponse res = facultyService.updateFaculty(request);
+        log.debug(APILogDebugMessages.RESPONSE_OBJECT.getMessage(EntityNames.FACULTY, res));
+        log.info(APILogInfoMessages.ENTITY_UPDATED_WITH_ID.getMessage(EntityNames.FACULTY, res.getFacultyId()));
+        return ResponseBuilder1.ok(SuccessMessages.ENTITY_UPDATED.getMessage(EntityNames.FACULTY, res.getFacultyId()), res);
     }
 
     @DeleteMapping("/{facultyId}")
-    public ResponseEntity<?> deleteFaculty(@PathVariable("facultyId") String facultyId) {
-        log.info("Deleting faculty with ID: {}", facultyId);
-        String result = facultyService.deleteFacultyById(facultyId);
-        return ResponseBuilder.ok(result, SuccessMessageEnum.FACULTY_DELETED, facultyId);
+    public ResponseEntity<SuccessResponse<String>> deleteFacultyById(@PathVariable("facultyId") String facultyId) {
+        log.info(APILogInfoMessages.DELETE_ENTITY_WITH_ID.getMessage(EntityNames.FACULTY, facultyId));
+        String res = facultyService.deleteFacultyById(facultyId);
+        log.debug(APILogDebugMessages.RESPONSE_OBJECT.getMessage(EntityNames.FACULTY, res));
+        log.info(APILogInfoMessages.ENTITY_DELETED_WITH_ID.getMessage(EntityNames.FACULTY, facultyId));
+        return ResponseBuilder1.ok(SuccessMessages.ENTITY_DELETED_WITH_ID.getMessage(EntityNames.FACULTY, facultyId), res);
     }
 }

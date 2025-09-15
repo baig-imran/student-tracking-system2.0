@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.sts.constants.ErrorMessageEnum;
+import com.sts.constants.ErrorMessages;
 import com.sts.dto.semestersubject.FacultySemesterSubjectStudentsGetRequest;
 import com.sts.dto.semestersubject.FacultySemesterSubjectsGetRequest;
 import com.sts.dto.semestersubject.FacultySemesterSubjectsGetResponse;
@@ -110,7 +110,7 @@ public class SemesterSubjectServiceImpl implements SemesterSubjectService {
 	        LocalDate currentDate = LocalDate.now();
 			List<SemesterSubject> semesterSubjects = semesterSubjectRepository.findActiveSemesterSubjectsByFacultyId(facultyId, currentDate);
 			if(semesterSubjects.isEmpty()) {
-				throw new  ResourceNotFoundException(ErrorMessageEnum.FACULTY_SEMESTER_SUBJECTS_NOT_FOUND.getMessage());
+				throw new  ResourceNotFoundException(ErrorMessages.FACULTY_SEMESTER_SUBJECTS_NOT_FOUND.getMessage());
 			}
 			
 			facultySemesterSubjects = semesterSubjects.stream().map(semesterSubject -> {

@@ -11,12 +11,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sts.constants.Endpoints;
-import com.sts.constants.SuccessMessageEnum;
+import com.sts.constants.SuccessMessages;
 import com.sts.constants.SuccessResponse;
 import com.sts.dto.semester.AddStudentsToSubjectReq;
 import com.sts.dto.semester.AddStudentsToSubjectRes;
 import com.sts.service.interfaces.StudentSubjectService;
 import com.sts.utils.ResponseBuilder;
+import com.sts.utils.ResponseBuilder1;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,15 +38,21 @@ public class StudentSubjectController {
 
         List<AddStudentsToSubjectRes> resList = studentSubjectService.addStudentsToSubject(reqList);
 
-        return ResponseBuilder.ok(resList, SuccessMessageEnum.STUDENTS_ADDED_TO_SUBJECT);
+        return ResponseBuilder1.ok(
+                SuccessMessages.STUDENTS_ADDED_TO_SUBJECT.getMessage(resList.size()),
+                resList
+        );
     }
 
 
     @GetMapping("/students/{subjectCode}")
-    public ResponseEntity<?> getSubjectStudentsBySubjectCode(@PathVariable("subjectCode") String subjectCode) {
+    public ResponseEntity<?> getStudentsBySubjectCode(@PathVariable("subjectCode") String subjectCode) {
         log.info("Fetching students for subjectCode: {}", subjectCode);
-        List<String> students = studentSubjectService.getSubjectStudentsBySubjectCode(subjectCode);
+        List<String> students = studentSubjectService.getStudentsBySubjectCode(subjectCode);
 
-        return ResponseBuilder.ok(students, SuccessMessageEnum.SUBJECT_STUDENTS_FETCHED, subjectCode);
+        return ResponseBuilder1.ok(
+                SuccessMessages.SUBJECT_STUDENTS_FETCHED.getMessage(subjectCode),
+                students
+        );
     }
 }

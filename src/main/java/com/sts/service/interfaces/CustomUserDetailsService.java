@@ -1,12 +1,12 @@
 package com.sts.service.interfaces;
 
 import org.springframework.security.core.userdetails.User;
-
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.sts.entity.Roles;
 import com.sts.entity.Users;
 import com.sts.repository.UserRepository;
 
@@ -30,10 +30,15 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("User Not Found");
         }
         UserDetails userDetails = User.builder()
-        		.username(user.getUsername())
-        		.password(user.getPassword())
-        		.roles(user.getRole())
-        		.build();
+                .username(user.getUsername())
+                .password(user.getPassword())
+                .roles(
+                    user.getRoles()
+                        .stream()
+                        .map(Roles::getName)
+                        .toArray(String[]::new)
+                )
+                .build();
         		
 
         log.info("User Found: {} with Role: {}", userDetails.getUsername(), userDetails.getAuthorities());

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sts.constants.Endpoints;
-import com.sts.dto.UserRequest;
+import com.sts.dto.user.CreateUserReq;
 import com.sts.service.interfaces.UserService;
 
 @RestController

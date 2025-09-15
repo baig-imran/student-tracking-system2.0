@@ -3,27 +3,27 @@ package com.sts.service.interfaces;
 import java.util.List;
 
 import com.sts.dto.student.GetStudentsByIdsReq;
-import com.sts.dto.student.StudentCreateRequest;
-import com.sts.dto.student.StudentGetRequest;
+import com.sts.dto.student.CreateStudentReq;
+import com.sts.dto.student.GetStudentReq;
 import com.sts.dto.student.StudentResponse;
-import com.sts.dto.student.StudentUpdateRequest;
+import com.sts.dto.student.UpdateStudentReq;
 
 public interface StudentService{
 	
-	StudentResponse saveStudent(StudentCreateRequest studentCreateRequest);
+	StudentResponse saveStudent(CreateStudentReq createStudentReq);
 
-	String saveMultipleStudents(List<StudentCreateRequest> studentCreateRequests);
+	String createBulkStudents(List<CreateStudentReq> createStudentReqs);
 
-	List<StudentResponse> getStudentsByCriteria(StudentGetRequest studentGetRequest);
+	List<StudentResponse> getStudentsBySpecification(GetStudentReq getStudentReq);
 
-	StudentResponse updateStudent(StudentUpdateRequest studentRequest);
+	StudentResponse updateStudent(UpdateStudentReq studentRequest);
 	StudentResponse getStudentById(String studentId);
 
 	String deleteById(String studentId);
 
-	List<StudentGetRequest> getStudentsByStudentIds(GetStudentsByIdsReq req);
+	List<GetStudentReq> getStudentsByStudentIds(GetStudentsByIdsReq req);
 
-	String updateBulkStudents(List<StudentUpdateRequest> reqs);
+	String updateBulkStudents(List<UpdateStudentReq> reqs);
 
 	List<String> deleteByIds(List<String> req);
 	

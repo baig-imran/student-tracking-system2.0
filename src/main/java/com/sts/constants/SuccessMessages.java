@@ -1,13 +1,43 @@
 package com.sts.constants;
 
 
-public enum SuccessMessageEnum {
+public enum SuccessMessages {
 
 	// Generic
 	CREATED_SUCCESSFULLY("Successfully created"),
 	UPDATED_SUCCESSFULLY("Successfully updated"),
 	DELETED_SUCCESSFULLY("Successfully deleted"),
 	FETCHED_SUCCESSFULLY("Data fetched successfully"),
+
+	// --- CRUD Operations ---
+	CREATE_ENTITY("Request received to create %s with %s "),
+	ENTITY_CREATED("Successfully created %s with ID %s "),
+
+	CREATE_BULK_ENTITIES("Request received to create %s %s "), //Request received to create x departments
+	BULK_ENTITIES_CREATED("Successfully created %s %s "),
+
+	FETCH_ENTITY("Request received to fetch %s with ID %s "),
+	FETCH_ENTITY_WITH_ID("Fetching %s with ID %s "),
+	ENTITY_FETCHED_WITH_ID("Fetched %s with ID: %s "),
+	ENTITY_FETCHED("Successfully fetched %s with ID %s "),
+
+	FETCH_ALL_ENTITIES("Request received to fetch all %s "),
+	ALL_ENTITIES_FETCHED("Successfully fetched all %s (%s records) "),
+
+	UPDATE_ENTITY("Request received to update %s with %s"),
+	ENTITY_UPDATED("Successfully updated %s with ID %s "),
+
+	UPDATE_BULK_ENTITIES("Request received to update %s %s "),
+	BULK_ENTITIES_UPDATED("Successfully updated %s %s "),
+
+	DELETE_ENTITY("Request received to delete %s with ID %s "),
+	ENTITY_DELETED_WITH_ID("Successfully deleted %s with ID %s "),
+
+	DELETE_BULK_ENTITIES("Request received to delete bulk %s "),
+	BULK_ENTITIES_DELETED("Successfully deleted %s %s "),
+	
+	ENTITIES_FETCHED_BY_SPECIFICATION("SERVICE: Successfully fetched %s %s "),
+
 
 	// Attendance
 	ATTENDANCE_CREATED("Attendance created successfully"),
@@ -93,13 +123,13 @@ public enum SuccessMessageEnum {
 	// Student-Semester Operations
 	STUDENT_SUBJECTS_ENROLLED("Student '%s' enrolled in subjects successfully"),
 
-	
+
 	// Supply Registration
 	SUPPLY_REGISTERED_STUDENTS_FETCHED("Fetched supply registered students successfully"),
 	SUPPLY_STUDENTS_REGISTERED("Students registered for supply exam successfully"),
 	SUPPLY_STUDENTS_BULK_REGISTERED("Bulk students registered for supply exam successfully"),
 
-	
+
 	// Student Exam
 	STUDENTS_ADDED_TO_EXAM("Students added to exam successfully"),
 	MULTIPLE_EXAM_DATA_UPLOADED("Multiple subject exam data uploaded successfully"),
@@ -131,7 +161,7 @@ public enum SuccessMessageEnum {
 
 	private final String message;
 
-	SuccessMessageEnum(String message) {
+	SuccessMessages(String message) {
 		this.message = message;
 	}
 

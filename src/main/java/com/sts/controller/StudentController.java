@@ -15,17 +15,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sts.constants.Endpoints;
-import com.sts.constants.SuccessMessageEnum;
-import com.sts.dto.student.DeleteStudentsByIdsReq;
+import com.sts.constants.EntityNames;
+import com.sts.constants.SuccessMessages;
+import com.sts.constants.SuccessResponse;
 import com.sts.dto.student.GetStudentsByIdsReq;
-import com.sts.dto.student.StudentCreateRequest;
-import com.sts.dto.student.StudentGetRequest;
+import com.sts.dto.student.CreateStudentReq;
+import com.sts.dto.student.GetStudentReq;
 import com.sts.dto.student.StudentResponse;
-import com.sts.dto.student.StudentUpdateRequest;
+import com.sts.dto.student.UpdateStudentReq;
 import com.sts.entity.Student;
 import com.sts.repository.StudentRepository;
 import com.sts.service.interfaces.StudentService;
-import com.sts.utils.ResponseBuilder;
+import com.sts.utils.ResponseBuilder1;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,21 +42,26 @@ public class StudentController {
     private final StudentRepository studentRepository;
 
     @GetMapping("/{studentId}")
-    public ResponseEntity<?> getStudentById(@PathVariable("studentId") String studentId) {
+    public ResponseEntity<SuccessResponse<StudentResponse>> getStudentById(@PathVariable("studentId") String studentId) {
         log.info("Searching for student ID: {}", studentId);
         StudentResponse response = studentService.getStudentById(studentId);
-        return ResponseBuilder.ok(response, SuccessMessageEnum.STUDENT_FETCHED, response.getStudentId());
-    }
+        return ResponseBuilder1.ok(
+                SuccessMessages.FETCH_ENTITY_WITH_ID.getMessage(EntityNames.STUDENT, studentId),
+                response
+        );    }
 
     @PostMapping("/search")
-    public ResponseEntity<?> getStudentsByCriteria(@RequestBody StudentGetRequest studentRequest) {
-        log.info("Searching for students with criteria: {}", studentRequest);
-        List<StudentResponse> responseList = studentService.getStudentsByCriteria(studentRequest);
-        return ResponseBuilder.ok(responseList, SuccessMessageEnum.STUDENTS_FETCHED, responseList.size());
+    public ResponseEntity<SuccessResponse<List<StudentResponse>>> getStudentsBySpecification(@RequestBody GetStudentReq req) {
+        log.info("Searching for students with criteria: {}", req);
+        List<StudentResponse> responseList = studentService.getStudentsBySpecification(req);
+        return ResponseBuilder1.ok(
+                SuccessMessages.ALL_ENTITIES_FETCHED.getMessage(EntityNames.STUDENT, responseList.size()),
+                responseList
+        );
     }
 
     @GetMapping("/bulk")
-    public ResponseEntity<?> getAllStudents() {
+    public ResponseEntity<SuccessResponse<List<StudentResponse>>> getAllStudents() {
         List<StudentResponse> responseList = new ArrayList<>();
         List<Student> students = studentRepository.findAll();
         students.forEach(student -> {
@@ -64,57 +70,76 @@ public class StudentController {
             response.setMentorId(student.getFaculty().getFacultyId());
             responseList.add(response);
         });
-        return ResponseBuilder.ok(responseList, SuccessMessageEnum.STUDENTS_FETCHED);
+        return ResponseBuilder1.ok(
+                SuccessMessages.ALL_ENTITIES_FETCHED.getMessage(EntityNames.STUDENT, responseList.size()),
+                responseList
+        );
     }
-
     @PostMapping
-    public ResponseEntity<?> createStudent(@RequestBody StudentCreateRequest studentRequest) {
-        log.info("Received request to create a new student: {}", studentRequest);
-        StudentResponse response = studentService.saveStudent(studentRequest);
-        return ResponseBuilder.created(response, SuccessMessageEnum.STUDENT_CREATED, response.getStudentId());
+    public ResponseEntity<SuccessResponse<StudentResponse>> createStudent(@RequestBody CreateStudentReq req) {
+        log.info("Received request to create a new student: {}", req);
+        StudentResponse response = studentService.saveStudent(req);
+        return ResponseBuilder1.created(
+                SuccessMessages.ENTITY_CREATED.getMessage(EntityNames.STUDENT, response.getStudentId()),
+                response
+        );
     }
-
     @PostMapping("/bulk")
-    public ResponseEntity<?> createMultipleStudents(@RequestBody List<StudentCreateRequest> studentRequests) {
-        log.info("Received request to create multiple students: {}", studentRequests);
-        String responses = studentService.saveMultipleStudents(studentRequests);
-        return ResponseBuilder.ok(null, SuccessMessageEnum.STUDENTS_BULK_CREATED);
+    public ResponseEntity<SuccessResponse<Object>> createBulkStudents(@RequestBody List<CreateStudentReq> req) {
+        log.info("Received request to create multiple students: {}", req);
+        String responses = studentService.createBulkStudents(req);
+        return ResponseBuilder1.ok(
+                SuccessMessages.BULK_ENTITIES_CREATED.getMessage(EntityNames.STUDENT, req.size()),
+                null
+        );
     }
-
+    
     @PutMapping
-    public ResponseEntity<?> updateStudent(@RequestBody StudentUpdateRequest studentRequest) {
-        log.info("Received request to update a student: {}", studentRequest);
-        StudentResponse response = studentService.updateStudent(studentRequest);
-        return ResponseBuilder.ok(response, SuccessMessageEnum.STUDENT_UPDATED, response.getStudentId());
+    public ResponseEntity<SuccessResponse<StudentResponse>> updateStudent(@RequestBody UpdateStudentReq req) {
+        log.info("Received request to update a student: {}", req);
+        StudentResponse response = studentService.updateStudent(req);
+        return ResponseBuilder1.ok(
+                SuccessMessages.ENTITY_UPDATED.getMessage(EntityNames.STUDENT, response.getStudentId()),
+                response
+        );
     }
-
 
     @PostMapping("/getByIds")
-    public ResponseEntity<?> getStudentsByIds(@RequestBody GetStudentsByIdsReq req) {
+    public ResponseEntity<SuccessResponse<List<GetStudentReq>>> getStudentsByIds(@RequestBody GetStudentsByIdsReq req) {
         log.info("Fetching students by IDs: {}", req.getStudentIds());
-        List<StudentGetRequest> students = studentService.getStudentsByStudentIds(req);
-        return ResponseBuilder.ok(students, SuccessMessageEnum.STUDENTS_FETCHED);
+        List<GetStudentReq> students = studentService.getStudentsByStudentIds(req);
+        return ResponseBuilder1.ok(
+                SuccessMessages.FETCH_ALL_ENTITIES.getMessage(EntityNames.STUDENT, students.size()),
+                students
+        );
     }
 
     @PutMapping("/bulk")
-    public ResponseEntity<?> updateBulkStudents(@RequestBody List<StudentUpdateRequest> reqs) {
+    public ResponseEntity<SuccessResponse<String>> updateBulkStudents(@RequestBody List<UpdateStudentReq> reqs) {
         log.info("Received bulk update request for {} students", reqs.size());
         String result = studentService.updateBulkStudents(reqs);
-        return ResponseBuilder.ok(result, SuccessMessageEnum.STUDENTS_BULK_UPDATED);
+        return ResponseBuilder1.ok(
+                SuccessMessages.UPDATE_BULK_ENTITIES.getMessage(EntityNames.STUDENT, reqs.size()),
+                result
+        );
     }
     
     @DeleteMapping("/{studentId}")
-    public ResponseEntity<?> deleteStudent(@PathVariable("studentId") String studentId) {
+    public ResponseEntity<SuccessResponse<String>> deleteStudent(@PathVariable("studentId") String studentId) {
     	log.info("Deleting student with ID: {}", studentId);
     	String deletedStudentId = studentService.deleteById(studentId);
-    	return ResponseBuilder.ok(deletedStudentId, SuccessMessageEnum.STUDENT_DELETED, deletedStudentId);
-    }
-    
+    	 return ResponseBuilder1.ok(
+                 SuccessMessages.ENTITY_DELETED_WITH_ID.getMessage(EntityNames.STUDENT, deletedStudentId),
+                 deletedStudentId
+         );
+     }
     @DeleteMapping("/bulk")
-    public ResponseEntity<?> deleteBulkStudents(@RequestBody List<String> studentIds) {
+    public ResponseEntity<SuccessResponse<List<String>>> deleteBulkStudents(@RequestBody List<String> studentIds) {
         log.info("Deleting students with IDs: {}", studentIds);
         List<String> deletedStudentIds = studentService.deleteByIds(studentIds);
-        return ResponseBuilder.ok(deletedStudentIds, SuccessMessageEnum.STUDENT_DELETED, deletedStudentIds);
+        return ResponseBuilder1.ok(
+                SuccessMessages.BULK_ENTITIES_DELETED.getMessage(EntityNames.STUDENT, deletedStudentIds.size()),
+                deletedStudentIds
+        );
     }
-
 }

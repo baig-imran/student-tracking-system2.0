@@ -1,17 +1,18 @@
 package com.sts.service.interfaces;
 
 import java.util.Map;
+import java.util.Set;
 
-import com.sts.dto.UserRequest;
-import com.sts.dto.UserResponse;
+import com.sts.dto.user.CreateUserReq;
+import com.sts.dto.user.CreateUserRes;
 import com.sts.entity.Users;
 
 public interface UserService {
 	
-	public UserResponse saveUser(UserRequest userRequest);
+	public CreateUserRes createUser(CreateUserReq createUserReq);
 
-	public Map<String, Object> verify(UserRequest userRequest);
-	public String getRole(String username);
+	public Map<String, Object> verify(CreateUserReq createUserReq);
+	public Set<String> getRole(String username);
 	
 
 }

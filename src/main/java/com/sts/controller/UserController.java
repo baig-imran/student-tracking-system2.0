@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sts.dto.UserRequest;
-import com.sts.dto.UserResponse;
+import com.sts.dto.user.CreateUserReq;
+import com.sts.dto.user.CreateUserRes;
 import com.sts.service.interfaces.UserService;
 
 @RestController
@@ -22,18 +22,18 @@ public class UserController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<UserResponse> signup(@RequestBody UserRequest userRequest) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.saveUser(userRequest));
+    public ResponseEntity<CreateUserRes> signup(@RequestBody CreateUserReq createUserReq) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(createUserReq));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody UserRequest userRequest) {
-        return ResponseEntity.ok(userService.verify(userRequest));
+    public ResponseEntity<Map<String, Object>> login(@RequestBody CreateUserReq createUserReq) {
+        return ResponseEntity.ok(userService.verify(createUserReq));
     }
 	
 //	@PostConstruct
 //	public void init() {
-//	    UserRequest userRequest = new UserRequest();
+//	    CreateUserReq userRequest = new CreateUserReq();
 //	    userRequest.setUserName("admin");
 //	    userRequest.setPassword("1234");
 //	    userRequest.setRoles(Arrays.asList(new String[]{"ADMIN", "USER"})

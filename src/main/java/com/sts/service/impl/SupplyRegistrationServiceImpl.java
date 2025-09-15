@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.sts.constants.ErrorMessageEnum;
+import com.sts.constants.ErrorMessages;
 import com.sts.dto.exam.supplyregistration.RegisterSupplyStudentsReq;
 import com.sts.entity.Exam;
 import com.sts.entity.Student;
@@ -43,11 +43,11 @@ public class SupplyRegistrationServiceImpl implements SupplyRegistrationService 
 	}
 
 	@Override
-	public String registerSupplyStudents(RegisterSupplyStudentsReq req) {
+	public String registerStudentsForSupplyExam(RegisterSupplyStudentsReq req) {
 		
 		String examCode = req.getExamCode(); 
 		List<String> studentIds = req.getStudentIds();
-	    Exam exam = examRepository.getByExamCode(examCode)
+	    Exam exam = examRepository.findByExamCode(examCode)
 	            .orElseThrow(() -> new ResourceNotFoundException("Exam not found: " + examCode));
 
 	    String subjectCode = exam.getSemesterSubject().getSubjectCode();
@@ -57,7 +57,7 @@ public class SupplyRegistrationServiceImpl implements SupplyRegistrationService 
 	            // 1. Check student-subject mapping
 	            if (!studentSubjectRepository.existsBySemesterSubject_SubjectCodeAndStudent_StudentId(subjectCode, studentId)) {
 	                throw new ResourceNotFoundException(
-	                    ErrorMessageEnum.STUDENT_SUBJECT_MISSMATCH.getMessage(studentId, subjectCode)
+	                    ErrorMessages.STUDENT_SUBJECT_MISSMATCH.getMessage(studentId, subjectCode)
 	                );
 	            }
 
@@ -89,7 +89,7 @@ public class SupplyRegistrationServiceImpl implements SupplyRegistrationService 
 	}
 	
 	@Override
-	public String registerBulkSupplyStudents(List<RegisterSupplyStudentsReq> reqList) {
+	public String registerStudentsForSupplyExamInBulk(List<RegisterSupplyStudentsReq> reqList) {
 	    log.info("Starting bulk supply registration for {} exams", reqList.size());
 
 	    int totalRegistered = 0;
@@ -100,7 +100,7 @@ public class SupplyRegistrationServiceImpl implements SupplyRegistrationService 
 
 	        log.info("Registering students for exam: {}", examCode);
 
-	        Exam exam = examRepository.getByExamCode(examCode)
+	        Exam exam = examRepository.findByExamCode(examCode)
 	                .orElseThrow(() -> new ResourceNotFoundException("Exam not found: " + examCode));
 
 	        String subjectCode = exam.getSemesterSubject().getSubjectCode();
@@ -110,7 +110,7 @@ public class SupplyRegistrationServiceImpl implements SupplyRegistrationService 
 	                    // 1. Check student-subject mapping
 	                    if (!studentSubjectRepository.existsBySemesterSubject_SubjectCodeAndStudent_StudentId(subjectCode, studentId)) {
 	                        throw new ResourceNotFoundException(
-	                                ErrorMessageEnum.STUDENT_SUBJECT_MISSMATCH.getMessage(studentId, subjectCode)
+	                                ErrorMessages.STUDENT_SUBJECT_MISSMATCH.getMessage(studentId, subjectCode)
 	                        );
 	                    }
 

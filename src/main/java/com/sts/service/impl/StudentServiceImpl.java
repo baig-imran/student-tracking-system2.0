@@ -13,14 +13,14 @@ import org.modelmapper.ModelMapper;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
-import com.sts.constants.ErrorMessageEnum;
+import com.sts.constants.ErrorMessages;
 import com.sts.constants.ValidatorRuleEnum;
 import com.sts.dto.student.DeleteStudentsByIdsReq;
 import com.sts.dto.student.GetStudentsByIdsReq;
-import com.sts.dto.student.StudentCreateRequest;
-import com.sts.dto.student.StudentGetRequest;
+import com.sts.dto.student.CreateStudentReq;
+import com.sts.dto.student.GetStudentReq;
 import com.sts.dto.student.StudentResponse;
-import com.sts.dto.student.StudentUpdateRequest;
+import com.sts.dto.student.UpdateStudentReq;
 import com.sts.entity.Department;
 import com.sts.entity.Faculty;
 import com.sts.entity.Student;
@@ -63,7 +63,7 @@ public class StudentServiceImpl implements StudentService {
 
 	    Student student = studentRepository.findById(studentId)
 	        .orElseThrow(() -> new ResourceNotFoundException(
-	            ErrorMessageEnum.STUDENT_ID_NOT_FOUND.getMessage(studentId)));
+	            ErrorMessages.STUDENT_ID_NOT_FOUND.getMessage(studentId)));
 
 	    StudentResponse response = mapToStudentResponse(student);
 
@@ -90,16 +90,16 @@ public class StudentServiceImpl implements StudentService {
 	
 
 	@Override
-	public List<StudentResponse> getStudentsByCriteria(StudentGetRequest studentGetRequest) {
-	    log.info("Fetching students based on filter criteria: {}", studentGetRequest);
+	public List<StudentResponse> getStudentsBySpecification(GetStudentReq getStudentReq) {
+	    log.info("Fetching students based on filter criteria: {}", getStudentReq);
 
-	    ObjectValidator.isObjectEmpty(studentGetRequest);
+	    ObjectValidator.isObjectEmpty(getStudentReq);
 
-	    List<Student> students = studentRepository.findAll(StudentSpecification.getStudentSpec(studentGetRequest));
+	    List<Student> students = studentRepository.findAll(StudentSpecification.getStudentSpec(getStudentReq));
 
 	    if (students.isEmpty()) {
 	        log.info("No students found for the given filter criteria.");
-	       throw new ResourceNotFoundException(ErrorMessageEnum.STUDENTS_NOT_FOUND.getMessage());
+	       throw new ResourceNotFoundException(ErrorMessages.STUDENTS_NOT_FOUND.getMessage());
 	    }
 
 	    List<StudentResponse> responses = students.stream()
@@ -115,7 +115,7 @@ public class StudentServiceImpl implements StudentService {
 
 	@Override
 	@Transactional
-	public StudentResponse saveStudent(StudentCreateRequest studentRequest) {
+	public StudentResponse saveStudent(CreateStudentReq studentRequest) {
 		log.info("Starting to save student with request: {}", studentRequest);
 		validateStudentRequest(studentRequest);
 
@@ -123,12 +123,12 @@ public class StudentServiceImpl implements StudentService {
 
 		log.info("Fetching department with ID: {}", studentRequest.getDepartmentId());
 		Department department = departmentRepository.findById(studentRequest.getDepartmentId())
-				.orElseThrow(() -> new ResourceNotFoundException(ErrorMessageEnum.DEPARTMENT_ID_NOT_FOUND.getMessage(studentRequest.getDepartmentId()))
+				.orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.DEPARTMENT_ID_NOT_FOUND.getMessage(studentRequest.getDepartmentId()))
 						);
 
 		log.info("Fetching faculty with ID: {}", studentRequest.getMentorId());
 		Faculty faculty = facultyRepository.findById(studentRequest.getMentorId())
-				.orElseThrow(() -> new ResourceNotFoundException(ErrorMessageEnum.FACULTY_ID_NOT_FOUND.getMessage(studentRequest.getMentorId())));
+				.orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.FACULTY_ID_NOT_FOUND.getMessage(studentRequest.getMentorId())));
 
 		newStudent.setDepartment(department);
 		newStudent.setFaculty(faculty);
@@ -147,18 +147,18 @@ public class StudentServiceImpl implements StudentService {
 
 	@Override
 	@Transactional
-	public String saveMultipleStudents(List<StudentCreateRequest> studentRequests) {
+	public String createBulkStudents(List<CreateStudentReq> studentRequests) {
 	    log.info("Starting to save multiple students, total records: {}", studentRequests.size());
 
 	    studentRequests.forEach(this::validateStudentRequest);
 
 	    // Prefetch related entities
 	    Set<String> departmentIds = studentRequests.stream()
-	            .map(StudentCreateRequest::getDepartmentId)
+	            .map(CreateStudentReq::getDepartmentId)
 	            .collect(Collectors.toSet());
 
 	    Set<String> mentorIds = studentRequests.stream()
-	            .map(StudentCreateRequest::getMentorId)
+	            .map(CreateStudentReq::getMentorId)
 	            .collect(Collectors.toSet());
 
 	    Map<String, Department> departmentMap = departmentRepository.findAllById(departmentIds).stream()
@@ -173,12 +173,12 @@ public class StudentServiceImpl implements StudentService {
 
 	                Department department = departmentMap.get(request.getDepartmentId());
 	                if (department == null) {
-	                    throw new ResourceNotFoundException(ErrorMessageEnum.DEPARTMENT_ID_NOT_FOUND.getMessage(request.getDepartmentId()));
+	                    throw new ResourceNotFoundException(ErrorMessages.DEPARTMENT_ID_NOT_FOUND.getMessage(request.getDepartmentId()));
 	                }
 
 	                Faculty faculty = facultyMap.get(request.getMentorId());
 	                if (faculty == null) {
-	                    throw new ResourceNotFoundException(ErrorMessageEnum.FACULTY_ID_NOT_FOUND.getMessage(request.getMentorId()));
+	                    throw new ResourceNotFoundException(ErrorMessages.FACULTY_ID_NOT_FOUND.getMessage(request.getMentorId()));
 	                }
 
 	                student.setDepartment(department);
@@ -195,24 +195,24 @@ public class StudentServiceImpl implements StudentService {
 
 
 	@Override
-	public StudentResponse updateStudent(StudentUpdateRequest studentRequest) {
+	public StudentResponse updateStudent(UpdateStudentReq studentRequest) {
 	    log.info("Starting to update student with request: {}", studentRequest);
 
 	    // Fetch existing student
 	    Student existingStudent = studentRepository.findById(studentRequest.getStudentId())
-	            .orElseThrow(() -> new ResourceNotFoundException(ErrorMessageEnum.STUDENT_ID_NOT_FOUND.getMessage(studentRequest.getStudentId())));
+	            .orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.STUDENT_ID_NOT_FOUND.getMessage(studentRequest.getStudentId())));
 
 	    // Update basic fields (except relations)
 	    modelMapper.map(studentRequest, existingStudent); // Assuming studentId is ignored in mapping config
 
 	    // Fetch and assign department
 	    Department department = departmentRepository.findById(studentRequest.getDepartmentId())
-	            .orElseThrow(() -> new ResourceNotFoundException(ErrorMessageEnum.DEPARTMENT_ID_NOT_FOUND.getMessage(studentRequest.getDepartmentId())));
+	            .orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.DEPARTMENT_ID_NOT_FOUND.getMessage(studentRequest.getDepartmentId())));
 	    existingStudent.setDepartment(department);
 
 	    // Fetch and assign faculty
 	    Faculty faculty = facultyRepository.findById(studentRequest.getMentorId())
-	            .orElseThrow(() -> new ResourceNotFoundException(ErrorMessageEnum.FACULTY_ID_NOT_FOUND.getMessage(studentRequest.getMentorId())));
+	            .orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.FACULTY_ID_NOT_FOUND.getMessage(studentRequest.getMentorId())));
 	    existingStudent.setFaculty(faculty);
 
 	    // Save the updated student
@@ -228,11 +228,11 @@ public class StudentServiceImpl implements StudentService {
 	}
 
 
-	private void validateStudentRequest(StudentCreateRequest studentRequest) {
+	private void validateStudentRequest(CreateStudentReq studentRequest) {
 
 		if (validatorRuleStatus.isRuleActive(ValidatorRuleEnum.STUDENT_REQUEST_VALIDATOR.getRuleName())) {
 			log.info("Validation rule '{}' is active, starting validation for student request.", ValidatorRuleEnum.STUDENT_REQUEST_VALIDATOR.getRuleName());
-			Validator<StudentCreateRequest> validator = (Validator<StudentCreateRequest>) applicationContext.getBean(ValidatorRuleEnum.STUDENT_REQUEST_VALIDATOR.getValidatorClass());
+			Validator<CreateStudentReq> validator = (Validator<CreateStudentReq>) applicationContext.getBean(ValidatorRuleEnum.STUDENT_REQUEST_VALIDATOR.getValidatorClass());
 			validator.validate(studentRequest);
 		}
 	}
@@ -242,7 +242,7 @@ public class StudentServiceImpl implements StudentService {
 	
 	
 	@Override
-	public List<StudentGetRequest> getStudentsByStudentIds(GetStudentsByIdsReq req) {
+	public List<GetStudentReq> getStudentsByStudentIds(GetStudentsByIdsReq req) {
 	    log.info("Fetching students for IDs: {}", req.getStudentIds());
 
 	    List<String> requestedIds = req.getStudentIds();
@@ -264,13 +264,13 @@ public class StudentServiceImpl implements StudentService {
 
 	    if (!notFoundIds.isEmpty()) {
 	        throw new ResourceNotFoundException(
-	            ErrorMessageEnum.STUDENT_IDS_NOT_FOUND.getMessage(notFoundIds.toString())
+	            ErrorMessages.STUDENT_IDS_NOT_FOUND.getMessage(notFoundIds.toString())
 	        );
 	    }
 
 	    return students.stream()
 	            .map(student -> {
-	                StudentGetRequest dto = modelMapper.map(student, StudentGetRequest.class);
+	                GetStudentReq dto = modelMapper.map(student, GetStudentReq.class);
 	                dto.setDepartmentId(student.getDepartment().getDepartmentId());
 	                dto.setMentorId(student.getFaculty().getFacultyId());
 	                return dto;
@@ -280,21 +280,21 @@ public class StudentServiceImpl implements StudentService {
 
 	@Override
 	@Transactional
-	public String updateBulkStudents(List<StudentUpdateRequest> reqs) {
+	public String updateBulkStudents(List<UpdateStudentReq> reqs) {
 	    log.info("Starting bulk update for {} students.", reqs.size());
 
 	    // 1. Collect all needed IDs
 	    Set<String> studentIds = reqs.stream()
-	            .map(StudentUpdateRequest::getStudentId)
+	            .map(UpdateStudentReq::getStudentId)
 	            .collect(Collectors.toSet());
 
 	    Set<String> departmentIds = reqs.stream()
-	            .map(StudentUpdateRequest::getDepartmentId)
+	            .map(UpdateStudentReq::getDepartmentId)
 	            .filter(Objects::nonNull)
 	            .collect(Collectors.toSet());
 
 	    Set<String> facultyIds = reqs.stream()
-	            .map(StudentUpdateRequest::getMentorId)
+	            .map(UpdateStudentReq::getMentorId)
 	            .filter(Objects::nonNull)
 	            .collect(Collectors.toSet());
 
@@ -310,11 +310,11 @@ public class StudentServiceImpl implements StudentService {
 
 	    List<Student> updatedStudents = new ArrayList<>();
 
-	    for (StudentUpdateRequest req : reqs) {
+	    for (UpdateStudentReq req : reqs) {
 	        Student existing = studentsMap.get(req.getStudentId());
 	        if (existing == null) {
 	            throw new ResourceNotFoundException(
-	                    ErrorMessageEnum.STUDENT_ID_NOT_FOUND.getMessage(req.getStudentId()));
+	                    ErrorMessages.STUDENT_ID_NOT_FOUND.getMessage(req.getStudentId()));
 	        }
 
 	        // Partial update
@@ -330,7 +330,7 @@ public class StudentServiceImpl implements StudentService {
 	            Department dept = departmentsMap.get(req.getDepartmentId());
 	            if (dept == null) {
 	                throw new ResourceNotFoundException(
-	                        ErrorMessageEnum.DEPARTMENT_ID_NOT_FOUND.getMessage(req.getDepartmentId()));
+	                        ErrorMessages.DEPARTMENT_ID_NOT_FOUND.getMessage(req.getDepartmentId()));
 	            }
 	            existing.setDepartment(dept);
 	        }
@@ -339,7 +339,7 @@ public class StudentServiceImpl implements StudentService {
 	            Faculty mentor = facultiesMap.get(req.getMentorId());
 	            if (mentor == null) {
 	                throw new ResourceNotFoundException(
-	                        ErrorMessageEnum.FACULTY_ID_NOT_FOUND.getMessage(req.getMentorId()));
+	                        ErrorMessages.FACULTY_ID_NOT_FOUND.getMessage(req.getMentorId()));
 	            }
 	            existing.setFaculty(mentor);
 	        }
@@ -360,7 +360,7 @@ public class StudentServiceImpl implements StudentService {
 	    if (!studentRepository.existsById(studentId)) {
 	        log.warn("Student ID {} not found for deletion", studentId);
 	        throw new ResourceNotFoundException(
-	            ErrorMessageEnum.STUDENT_ID_NOT_FOUND.getMessage(studentId)
+	            ErrorMessages.STUDENT_ID_NOT_FOUND.getMessage(studentId)
 	        );
 	    }
 
@@ -391,7 +391,7 @@ public class StudentServiceImpl implements StudentService {
 	    if (!missingIds.isEmpty()) {
 	        log.warn("Some student IDs were not found: {}", missingIds);
 	        throw new ResourceNotFoundException(
-	            ErrorMessageEnum.STUDENT_IDS_NOT_FOUND.getMessage(String.join(", ", missingIds))
+	            ErrorMessages.STUDENT_IDS_NOT_FOUND.getMessage(String.join(", ", missingIds))
 	        );
 	    }
 

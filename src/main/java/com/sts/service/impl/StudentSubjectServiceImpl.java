@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import com.sts.constants.ErrorMessageEnum;
+import com.sts.constants.ErrorMessages;
 import com.sts.dto.semester.AddStudentsToSubjectReq;
 import com.sts.dto.semester.AddStudentsToSubjectRes;
 import com.sts.entity.SemesterSubject;
@@ -90,7 +90,7 @@ public class StudentSubjectServiceImpl implements StudentSubjectService {
 	        SemesterSubject semesterSubject = semesterSubjectMap.get(subjectCode);
 	        if (semesterSubject == null) {
 	            log.error("Subject not found with code: {}", subjectCode);
-	            throw new ResourceNotFoundException(ErrorMessageEnum.SUBJECT_ID_NOT_FOUND.getMessage(subjectCode));
+	            throw new ResourceNotFoundException(ErrorMessages.SUBJECT_ID_NOT_FOUND.getMessage(subjectCode));
 	        }
 
 	        Student student = studentMap.get(studentId);
@@ -121,7 +121,7 @@ public class StudentSubjectServiceImpl implements StudentSubjectService {
 	}
 	
 	@Override
-	public List<String> getSubjectStudentsBySubjectCode(String subjectCode) {
+	public List<String> getStudentsBySubjectCode(String subjectCode) {
 			
 			List<StudentSubject> subjectStudents = studentSubjectRepository.findBySemesterSubject_SubjectCode(subjectCode);
 

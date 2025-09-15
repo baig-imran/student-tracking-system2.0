@@ -16,7 +16,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.sts.constants.ErrorMessageEnum;
+import com.sts.constants.ErrorMessages;
 import com.sts.dto.attendance.AddAttendanceRequest;
 import com.sts.dto.attendance.AttendanceRequest;
 import com.sts.dto.attendance.AttendanceResponse;
@@ -141,10 +141,10 @@ public class AttendanceServiceImpl implements AttendanceService {
 
 		// Fetch the student and semester based on the request
 		log.info("Fetching student with ID: {}", attendanceRequest.getStudentId());
-		//	        Student student = studentRepository.findById(attendanceRequest.getStudentId()).orElseThrow(() -> new ResourceNotFoundException(ErrorMessageEnum.STUDENT_ID_NOT_FOUND.getMessage(attendanceRequest.getStudentId())));
+		//	        Student student = studentRepository.findById(attendanceRequest.getStudentId()).orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.STUDENT_ID_NOT_FOUND.getMessage(attendanceRequest.getStudentId())));
 		//	       
 		StudentSubject studentSubject = studentSubjectRepository.getBySubjectCodeAndStudentId(attendanceRequest.getSubjectCode(), attendanceRequest.getStudentId()).orElseThrow(
-				() -> new ResourceNotFoundException(ErrorMessageEnum.STUDENT_SEMESTER_MISSMATCH
+				() -> new ResourceNotFoundException(ErrorMessages.STUDENT_SEMESTER_MISSMATCH
 						.getMessage(attendanceRequest.getStudentId(), attendanceRequest.getSemesterCode())));
 
 		Student student = studentSubject.getStudent();
@@ -153,11 +153,11 @@ public class AttendanceServiceImpl implements AttendanceService {
 		newAttendance.setStudent(student);
 
 		//	        log.info("Fetching semester for the code: {}", attendanceRequest.getSemesterCode());
-		//	        Semester semester = semesterRepository.findById(attendanceRequest.getSemesterCode()).orElseThrow(() -> new ResourceNotFoundException(ErrorMessageEnum.SEMESTER_CODE_NOT_FOUND.getMessage(attendanceRequest.getSemesterCode())));
+		//	        Semester semester = semesterRepository.findById(attendanceRequest.getSemesterCode()).orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.SEMESTER_CODE_NOT_FOUND.getMessage(attendanceRequest.getSemesterCode())));
 		//	        
 		SemesterSubject semesterSubject = semesterSubjectRepository.findById(attendanceRequest.getSubjectCode())				 
 				.orElseThrow(() -> new ResourceNotFoundException(
-						ErrorMessageEnum.SUBJECT_ID_NOT_FOUND.getMessage(attendanceRequest.getSubjectCode())));
+						ErrorMessages.SUBJECT_ID_NOT_FOUND.getMessage(attendanceRequest.getSubjectCode())));
 
 		Semester semester = semesterSubject.getSemester();
 		Department department = semester.getDepartment();
@@ -237,7 +237,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
 			// Get StudentSubject for validation and fetch student
 			StudentSubject studentSubject = studentSubjectRepository.getBySubjectCodeAndStudentId(request.getSubjectCode(), request.getStudentId())
-					.orElseThrow(() -> new ResourceNotFoundException(ErrorMessageEnum.STUDENT_SUBJECT_MISSMATCH
+					.orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.STUDENT_SUBJECT_MISSMATCH
 							.getMessage(request.getStudentId(), request.getSubjectCode())));
 
 			Student student = studentSubject.getStudent();
@@ -246,7 +246,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 			// Get SemesterSubject and extract semester and department
 			SemesterSubject semesterSubject = semesterSubjectRepository.findById(request.getSubjectCode())
 					.orElseThrow(() -> new ResourceNotFoundException(
-							ErrorMessageEnum.SUBJECT_ID_NOT_FOUND.getMessage(request.getSubjectCode())));
+							ErrorMessages.SUBJECT_ID_NOT_FOUND.getMessage(request.getSubjectCode())));
 
 			Semester semester = semesterSubject.getSemester();
 			Department department = semester.getDepartment();
@@ -304,7 +304,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 	            StudentSubject studentSubject = studentSubjectRepository
 	                    .getBySubjectCodeAndStudentId(request.getSubjectCode(), studentStatus.getStudentId())
 	                    .orElseThrow(() -> new ResourceNotFoundException(
-	                            ErrorMessageEnum.STUDENT_SUBJECT_MISSMATCH
+	                            ErrorMessages.STUDENT_SUBJECT_MISSMATCH
 	                                    .getMessage(studentStatus.getStudentId(), request.getSubjectCode())));
 
 	            Student student = studentSubject.getStudent();
@@ -313,7 +313,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 	            // Fetch semester-subject and related entities
 	            SemesterSubject semesterSubject = semesterSubjectRepository.findById(request.getSubjectCode())
 	                    .orElseThrow(() -> new ResourceNotFoundException(
-	                            ErrorMessageEnum.SUBJECT_ID_NOT_FOUND.getMessage(request.getSubjectCode())));
+	                            ErrorMessages.SUBJECT_ID_NOT_FOUND.getMessage(request.getSubjectCode())));
 
 	            Semester semester = semesterSubject.getSemester();
 	            Department department = semester.getDepartment();
@@ -399,7 +399,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 	//Returns attendance of all students of the give subject.
 	public List<GetStudentSemesterAttendanceRes> getAllStudentsSemesterAttendance(String subjectCode) {
 
-		List<String> studentIds = studentSubjectService.getSubjectStudentsBySubjectCode(subjectCode);
+		List<String> studentIds = studentSubjectService.getStudentsBySubjectCode(subjectCode);
 		log.info("Student ids {}",studentIds);
 		Map<String,GetStudentSemesterAttendanceRes> studentMap = new HashMap<>();
 
@@ -466,7 +466,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 	    
 		
 		if(!studentRepository.existsByStudentId(studentId)) {
-			throw new ResourceNotFoundException(ErrorMessageEnum.STUDENT_ID_NOT_FOUND.getMessage(studentId));
+			throw new ResourceNotFoundException(ErrorMessages.STUDENT_ID_NOT_FOUND.getMessage(studentId));
 		}
 	    List<Attendance> attendanceList = attendanceRepository.findAllByStudent_StudentId(studentId);
 
@@ -666,7 +666,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 	    if (students.isEmpty()) {
 	        log.info("No students found for faculty ID: {}", facultyId);
 	        throw new ResourceNotFoundException(
-	            ErrorMessageEnum.FACULTY_ID_NOT_FOUND.getMessage(facultyId)
+	            ErrorMessages.FACULTY_ID_NOT_FOUND.getMessage(facultyId)
 	        );
 	    }
 

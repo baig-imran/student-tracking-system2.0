@@ -18,21 +18,21 @@ public interface StudentExamService {
 
 	AddStudentsExamDataRes addStudentsExamData(AddStudentsExamDataReq req);
 
-	List<String> getExamStudentsByExamCode(String examCode);
+	List<String> getStudentsByExamCode(String examCode);
 
-	GetStudentAllSemesterExamDetailsRes getStudentAllSemesterExamDetails(String studentId);
+	GetStudentAllSemesterExamDetailsRes getAllSemestersExamDataByStudentId(String studentId);
 
-	GetStudentAllSemesterInternalExamDetailsRes getStudentAllSemesterInternalExamDetails(String studentId);
+	GetStudentAllSemesterInternalExamDetailsRes getAllSemestersInternalExamDataByStudentId(String studentId);
 
-	List<String> getInternalExamQualifiedStudentsBySubject(String subjectCode);
-	List<String> getInternalExamDisQualifiedStudentsBySubject(String subjectCode);
+	List<String> getInternalExamQualifiedStudentsBySubjectCode(String subjectCode);
+	List<String> getInternalExamDisQualifiedStudentsBySubjectCode(String subjectCode);
 
 
 	String addMultipleSubjectExamDataUpload(List<AddStudentsExamDataReq> reqList);
 
-	GetStudentCompleteResultRes getStudentOverallMarks(String studentId);
+	GetStudentCompleteResultRes getOverallMarksByStudentId(String studentId);
 
-	List<String> getSEEFailedStudentsByExam(String examCode);
+	List<String> getSEEFailedStudentsByExamCode(String examCode);
 
 	List<GetLowInternalMarksStudentsByFacultyIdRes> getLowInternalMarksStudentsByFacultyId(String facultyId);
 

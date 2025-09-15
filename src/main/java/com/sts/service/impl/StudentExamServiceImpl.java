@@ -16,7 +16,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
-import com.sts.constants.ErrorMessageEnum;
+import com.sts.constants.ErrorMessages;
 import com.sts.dto.exam.studentexam.AddStudentsExamDataReq;
 import com.sts.dto.exam.studentexam.AddStudentsExamDataRes;
 import com.sts.dto.exam.studentexam.GetInternalMarksByStudentIdAndSemesterCodeRes;
@@ -91,14 +91,14 @@ public class StudentExamServiceImpl implements StudentExamService {
 //
 //		Exam exam = examRepository.getByExamCode(req.getExamCode())
 //				.orElseThrow(() -> new ResourceNotFoundException(
-//						ErrorMessageEnum.EXAM_NOT_FOUND.getMessage(req.getExamCode())));
+//						ErrorMessages.EXAM_NOT_FOUND.getMessage(req.getExamCode())));
 //
 //		// checking the existance of first student, since its a bulk student exam data upload then one student's existance proves all others existance        
 //		String firstStudentId = req.getStudentsExamData().get(0).getStudentId();
 //
 //		if (studentExamRepository.existsByStudent_StudentIdAndExamCode(firstStudentId, req.getExamCode())) {
 //			throw new DuplicateResourceException(
-//					ErrorMessageEnum.DUPLICATE_STUDENT_EXAMDATA.getMessage(req.getExamCode())
+//					ErrorMessages.DUPLICATE_STUDENT_EXAMDATA.getMessage(req.getExamCode())
 //					);
 //		}
 //
@@ -116,7 +116,7 @@ public class StudentExamServiceImpl implements StudentExamService {
 //					.getBySubjectCodeAndStudentId(
 //							exam.getSemesterSubject().getSubjectCode(), studentId)
 //					.orElseThrow(() -> new ResourceNotFoundException(
-//							ErrorMessageEnum.STUDENT_SUBJECT_MISSMATCH.getMessage(
+//							ErrorMessages.STUDENT_SUBJECT_MISSMATCH.getMessage(
 //									studentId, exam.getSemesterSubject().getSubjectCode())));
 //
 //			Student student = studentSubject.getStudent();
@@ -167,14 +167,14 @@ public class StudentExamServiceImpl implements StudentExamService {
 	public AddStudentsExamDataRes addStudentsExamData(AddStudentsExamDataReq req) {
 	    log.info("Mapping students exam data to exam: {}", req.getExamCode());
 
-	    Exam exam = examRepository.getByExamCode(req.getExamCode())
+	    Exam exam = examRepository.findByExamCode(req.getExamCode())
 	            .orElseThrow(() -> new ResourceNotFoundException(
-	                    ErrorMessageEnum.EXAM_NOT_FOUND.getMessage(req.getExamCode())));
+	                    ErrorMessages.EXAM_NOT_FOUND.getMessage(req.getExamCode())));
 
 	    String firstStudentId = req.getStudentsExamData().get(0).getStudentId();
 	    if (studentExamRepository.existsByStudent_StudentIdAndExamCode(firstStudentId, req.getExamCode())) {
 	        throw new DuplicateResourceException(
-	                ErrorMessageEnum.DUPLICATE_STUDENT_EXAMDATA.getMessage(req.getExamCode())
+	                ErrorMessages.DUPLICATE_STUDENT_EXAMDATA.getMessage(req.getExamCode())
 	        );
 	    }
 
@@ -192,7 +192,7 @@ public class StudentExamServiceImpl implements StudentExamService {
 	                .getBySubjectCodeAndStudentId(
 	                        exam.getSemesterSubject().getSubjectCode(), studentId)
 	                .orElseThrow(() -> new ResourceNotFoundException(
-	                        ErrorMessageEnum.STUDENT_SUBJECT_MISSMATCH.getMessage(
+	                        ErrorMessages.STUDENT_SUBJECT_MISSMATCH.getMessage(
 	                                studentId, exam.getSemesterSubject().getSubjectCode())));
 
 	        Student student = studentSubject.getStudent();
@@ -258,15 +258,15 @@ public class StudentExamServiceImpl implements StudentExamService {
 	    for (AddStudentsExamDataReq req : reqList) {
 	        log.info("Mapping students exam data to exam: {}", req.getExamCode());
 
-	        Exam exam = examRepository.getByExamCode(req.getExamCode())
+	        Exam exam = examRepository.findByExamCode(req.getExamCode())
 	                .orElseThrow(() -> new ResourceNotFoundException(
-	                        ErrorMessageEnum.EXAM_NOT_FOUND.getMessage(req.getExamCode())));
+	                        ErrorMessages.EXAM_NOT_FOUND.getMessage(req.getExamCode())));
 
 	        // checking the existence of first student
 	        String firstStudentId = req.getStudentsExamData().get(0).getStudentId();
 	        if (studentExamRepository.existsByStudent_StudentIdAndExamCode(firstStudentId, req.getExamCode())) {
 	            throw new DuplicateResourceException(
-	                    ErrorMessageEnum.DUPLICATE_STUDENT_EXAMDATA.getMessage(req.getExamCode())
+	                    ErrorMessages.DUPLICATE_STUDENT_EXAMDATA.getMessage(req.getExamCode())
 	            );
 	        }
 
@@ -284,7 +284,7 @@ public class StudentExamServiceImpl implements StudentExamService {
 	                    .getBySubjectCodeAndStudentId(
 	                            exam.getSemesterSubject().getSubjectCode(), studentId)
 	                    .orElseThrow(() -> new ResourceNotFoundException(
-	                            ErrorMessageEnum.STUDENT_SUBJECT_MISSMATCH.getMessage(
+	                            ErrorMessages.STUDENT_SUBJECT_MISSMATCH.getMessage(
 	                                    studentId, exam.getSemesterSubject().getSubjectCode())));
 
 	            Student student = studentSubject.getStudent();
@@ -325,9 +325,9 @@ public class StudentExamServiceImpl implements StudentExamService {
 	public AddStudentsExamDataRes addStudentsExamData2(AddStudentsExamDataReq req) {
 		log.info("Mapping students to exam: {}", req.getExamCode());
 
-		Exam exam = examRepository.getByExamCode(req.getExamCode())
+		Exam exam = examRepository.findByExamCode(req.getExamCode())
 				.orElseThrow(() -> new ResourceNotFoundException(
-						ErrorMessageEnum.EXAM_NOT_FOUND.getMessage(req.getExamCode())));
+						ErrorMessages.EXAM_NOT_FOUND.getMessage(req.getExamCode())));
 
 		List<StudentExam> studentExams = new ArrayList<>();
 		List<String> addedStudentIds = new ArrayList<>();
@@ -342,7 +342,7 @@ public class StudentExamServiceImpl implements StudentExamService {
 					.getBySubjectCodeAndStudentId(
 							exam.getSemesterSubject().getSubjectCode(), studentId)
 					.orElseThrow(() -> new ResourceNotFoundException(
-							ErrorMessageEnum.STUDENT_SUBJECT_MISSMATCH.getMessage(
+							ErrorMessages.STUDENT_SUBJECT_MISSMATCH.getMessage(
 									studentId,exam.getSemesterSubject().getSubjectCode())));
 
 			Student student = studentSubject.getStudent();
@@ -386,9 +386,9 @@ public class StudentExamServiceImpl implements StudentExamService {
 
 	@Override
 	// Exam contains SemesterSubject, using the SemesterSubject get the students from StudentSubject.
-	public List<String> getExamStudentsByExamCode(String examCode){
+	public List<String> getStudentsByExamCode(String examCode){
 
-		Exam exam = examRepository.getByExamCode(examCode).orElseThrow(() -> new ResourceNotFoundException(ErrorMessageEnum.EXAM_NOT_FOUND.getMessage(examCode)));
+		Exam exam = examRepository.findByExamCode(examCode).orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.EXAM_NOT_FOUND.getMessage(examCode)));
 		List<StudentSubject> subjectStudents = studentSubjectRepository.findBySemesterSubject_SubjectCode(exam.getSemesterSubject().getSubjectCode());
 
 		List<String> subjectStudentIds = subjectStudents.stream().map(studentSubject -> studentSubject.getStudent().getStudentId()).collect(Collectors.toList());
@@ -400,7 +400,7 @@ public class StudentExamServiceImpl implements StudentExamService {
 
 
 	@Override
-	public GetStudentAllSemesterExamDetailsRes getStudentAllSemesterExamDetails(String studentId) {
+	public GetStudentAllSemesterExamDetailsRes getAllSemestersExamDataByStudentId(String studentId) {
 
 		//1 Fetch all student exam records for the given studentId
 
@@ -477,10 +477,10 @@ public class StudentExamServiceImpl implements StudentExamService {
 
 
 	@Override
-	public GetStudentAllSemesterInternalExamDetailsRes getStudentAllSemesterInternalExamDetails(String studentId) {
+	public GetStudentAllSemesterInternalExamDetailsRes getAllSemestersInternalExamDataByStudentId(String studentId) {
 		
 		if(!studentRepository.existsById(studentId)) {
-			throw new ResourceNotFoundException(ErrorMessageEnum.STUDENT_ID_NOT_FOUND.getMessage(studentId));
+			throw new ResourceNotFoundException(ErrorMessages.STUDENT_ID_NOT_FOUND.getMessage(studentId));
 			
 		}
 		// 1️ Fetch all student exam records for the given studentId
@@ -564,7 +564,7 @@ public class StudentExamServiceImpl implements StudentExamService {
 
 
 	@Override
-	public List<String> getInternalExamQualifiedStudentsBySubject(String subjectCode) {
+	public List<String> getInternalExamQualifiedStudentsBySubjectCode(String subjectCode) {
 	    // Fetch only internal exams for a subject
 	    List<StudentExam> internalExams = studentExamRepository
 	            .findByExam_SemesterSubject_SubjectCodeAndExam_ExamType(subjectCode, "internal");
@@ -604,7 +604,7 @@ public class StudentExamServiceImpl implements StudentExamService {
 	    return qualifiedStudents;
 	}
 	@Override
-	public List<String> getInternalExamDisQualifiedStudentsBySubject(String subjectCode) {
+	public List<String> getInternalExamDisQualifiedStudentsBySubjectCode(String subjectCode) {
 	    // Fetch only internal exams for the given subject
 	    List<StudentExam> internalExams = studentExamRepository
 	            .findByExam_SemesterSubject_SubjectCodeAndExam_ExamType(subjectCode, "internal");
@@ -682,13 +682,13 @@ public class StudentExamServiceImpl implements StudentExamService {
 	
 	
 	@Override
-	public List<String> getSEEFailedStudentsByExam(String examCode) {
+	public List<String> getSEEFailedStudentsByExamCode(String examCode) {
 	    log.info("Fetching SEE failed students for examCode: {}", examCode);
 
 	    // 1. Fetch exam
-	    Exam exam = examRepository.getByExamCode(examCode)
+	    Exam exam = examRepository.findByExamCode(examCode)
 	            .orElseThrow(() -> new ResourceNotFoundException(
-	                    ErrorMessageEnum.EXAM_NOT_FOUND.getMessage(examCode)));
+	                    ErrorMessages.EXAM_NOT_FOUND.getMessage(examCode)));
 
 	    // 2. Verify exam type and subtype
 	    if (!"external".equalsIgnoreCase(exam.getExamType()) ||
@@ -735,7 +735,7 @@ public class StudentExamServiceImpl implements StudentExamService {
 	
 	
 	@Override
-	public GetStudentCompleteResultRes getStudentOverallMarks(String studentId) {
+	public GetStudentCompleteResultRes getOverallMarksByStudentId(String studentId) {
 	    List<StudentExam> exams = studentExamRepository.findByStudent_StudentId(studentId);
 
 	    if (exams.isEmpty()) {
@@ -1195,7 +1195,7 @@ public class StudentExamServiceImpl implements StudentExamService {
 
 	    Student student = studentRepository.findById(studentId)
 		        .orElseThrow(() -> new ResourceNotFoundException(
-		            ErrorMessageEnum.STUDENT_ID_NOT_FOUND.getMessage(studentId)));
+		            ErrorMessages.STUDENT_ID_NOT_FOUND.getMessage(studentId)));
 
 	    // Fetch all external exams (across all semesters) for the student
 	    List<StudentExam> externalExams = studentExamRepository

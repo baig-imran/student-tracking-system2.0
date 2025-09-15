@@ -6,13 +6,13 @@ import com.sts.dto.exam.supplyregistration.RegisterSupplyStudentsReq;
 
 public interface SupplyRegistrationService {
 
-	String registerSupplyStudents(RegisterSupplyStudentsReq req);
+	String registerStudentsForSupplyExam(RegisterSupplyStudentsReq req);
 
 
 	List<String> getSupplyRegisteredStudentIdsByExamCode(String examCode);
 
 
-	String registerBulkSupplyStudents(List<RegisterSupplyStudentsReq> reqList);
+	String registerStudentsForSupplyExamInBulk(List<RegisterSupplyStudentsReq> reqList);
 	
 
 }

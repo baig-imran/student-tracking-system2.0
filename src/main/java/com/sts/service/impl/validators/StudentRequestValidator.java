@@ -4,9 +4,9 @@ package com.sts.service.impl.validators;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
-import com.sts.constants.ErrorMessageEnum;
+import com.sts.constants.ErrorMessages;
 import com.sts.constants.ValidatorRuleEnum;
-import com.sts.dto.student.StudentCreateRequest;
+import com.sts.dto.student.CreateStudentReq;
 import com.sts.exceptions.BadRequestException;
 import com.sts.repository.StudentRepository;
 import com.sts.validator.Validator;
@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class StudentRequestValidator implements Validator<StudentCreateRequest> {
+public class StudentRequestValidator implements Validator<CreateStudentReq> {
 
     private final StudentRepository studentRepository;
     private final ApplicationContext applicationContext;
@@ -28,17 +28,17 @@ public class StudentRequestValidator implements Validator<StudentCreateRequest> 
     }
 
     @Override
-    public boolean validateAndGetResult(StudentCreateRequest object) {
+    public boolean validateAndGetResult(CreateStudentReq object) {
         return false;
     }
 
     @Override
-    public void validate(StudentCreateRequest studentRequest) {
+    public void validate(CreateStudentReq studentRequest) {
         log.info("Starting validation for StudentRequest with Student ID: {}", studentRequest.getStudentId());
 
         if (studentRequest.getStudentId() == null || studentRequest.getStudentId().isEmpty()) {
             log.error("Validation failed: Student ID is missing");
-            throw new BadRequestException(ErrorMessageEnum.STUDENT_ID_REQUIRED.getMessage());
+            throw new BadRequestException(ErrorMessages.STUDENT_ID_REQUIRED.getMessage());
         }
 
         if (validatorRuleStatus.isRuleActive(ValidatorRuleEnum.DUPLICATE_STUDENT_ID_VALIDATOR.getRuleName())) {
